@@ -1,5 +1,5 @@
 # ============================================================
-#  StreamMyMood — app.py  v6
+#  StreamMyMood — app.py  v7
 # ============================================================
 
 import streamlit as st
@@ -28,11 +28,11 @@ def file_b64(path):
 LOGO_B64 = file_b64("logo - StreamMyMood.png")
 BG_B64   = file_b64("background.png")
 
-def logo_html(width=340):
+def logo_html(width=380):
     if LOGO_B64:
         return (f'<div style="text-align:center;margin-bottom:1.4rem">'
                 f'<img src="data:image/png;base64,{LOGO_B64}" '
-                f'width="{width}" style="max-width:90vw"/></div>')
+                f'width="{width}" style="max-width:92vw"/></div>')
     return '<div style="text-align:center;font-size:2.5rem;font-weight:900;color:#ff4d6d;margin-bottom:1.4rem">StreamMyMood</div>'
 
 def placeholder_src():
@@ -60,7 +60,6 @@ html, body, * {{
   box-sizing: border-box;
 }}
 
-/* Background */
 .stApp, [data-testid="stAppViewContainer"] {{
   {bg_css}
   background-color: #2d0012 !important;
@@ -68,7 +67,6 @@ html, body, * {{
   color: white !important;
 }}
 
-/* Dark overlay for readability */
 [data-testid="stAppViewContainer"]::before {{
   content: '';
   position: fixed; inset: 0;
@@ -91,15 +89,7 @@ section[data-testid="stSidebar"] {{ display: none !important; }}
 
 h1,h2,h3,p,label,div,span {{ color: white !important; }}
 
-/* ── FORCE ALL CONTENT CENTER ── */
-[data-testid="stVerticalBlock"],
-[data-testid="column"] {{
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-}}
-
-/* ── Buttons ── */
+/* ── Buttons centered ── */
 .stButton {{
   display: flex !important;
   justify-content: center !important;
@@ -124,8 +114,7 @@ h1,h2,h3,p,label,div,span {{ color: white !important; }}
   transform: translateY(-2px) !important;
 }}
 
-/* ── Hide radio button circles + top empty option ── */
-div[data-testid="stRadio"] input[type="radio"] {{ display: none !important; }}
+/* ── Radio — hide Streamlit's own circle + label ── */
 div[data-testid="stRadio"] > label {{ display: none !important; }}
 div[data-testid="stRadio"] > div {{
   display: flex !important;
@@ -134,9 +123,9 @@ div[data-testid="stRadio"] > div {{
   gap: 0.55rem !important;
   width: 100% !important;
 }}
-div[data-testid="stRadio"] > div > label:first-child {{
-  display: none !important;
-}}
+/* Hide the radio circle input */
+div[data-testid="stRadio"] input {{ display: none !important; }}
+/* Style every option label */
 div[data-testid="stRadio"] label {{
   background: rgba(255,255,255,0.07) !important;
   border: 1.5px solid rgba(255,255,255,0.2) !important;
@@ -153,6 +142,14 @@ div[data-testid="stRadio"] label {{
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  min-height: 54px !important;
+}}
+/* Hide empty first option that Streamlit sometimes adds */
+div[data-testid="stRadio"] > div > label:has(> div:empty) {{
+  display: none !important;
+}}
+div[data-testid="stRadio"] > div > label:first-child:not(:has(p)) {{
+  display: none !important;
 }}
 div[data-testid="stRadio"] label:hover {{
   background: rgba(180,0,50,0.28) !important;
@@ -226,21 +223,45 @@ div[data-testid="stRadio"] label[data-checked="true"] {{
   height: 100px; overflow-y: auto; line-height: 1.55;
 }}
 
-/* ── Film reel animation ── */
-.reel-wrap {{ text-align: center; padding: 2.5rem 0; }}
+/* ── Like button ── */
+.like-btn {{
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 0.3rem 1rem;
+  font-size: 0.85rem;
+  color: white;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  width: 100%;
+  transition: all 0.2s;
+  text-align: center;
+}}
+.like-btn:hover {{
+  background: rgba(180,0,50,0.4);
+  border-color: #ff4d6d;
+}}
+.like-btn.liked {{
+  background: rgba(180,0,50,0.6);
+  border-color: #ff4d6d;
+  color: #ff9ab0;
+}}
+
+/* ── Film reel loading ── */
+.reel-wrap {{ text-align: center; padding: 3rem 0; }}
 .reel-svg {{
   display: inline-block;
-  animation: spin 1.8s linear infinite;
-  filter: drop-shadow(0 0 12px rgba(200,0,50,0.6));
+  animation: spin 1.6s linear infinite;
+  filter: drop-shadow(0 0 14px rgba(200,0,50,0.7));
 }}
 @keyframes spin {{
   from {{ transform: rotate(0deg); }}
   to   {{ transform: rotate(360deg); }}
 }}
 .loading-txt {{
-  font-size: 1.15rem !important;
-  color: rgba(255,255,255,0.88) !important;
-  margin-top: 1.2rem !important;
+  font-size: 1.2rem !important;
+  color: rgba(255,255,255,0.9) !important;
+  margin-top: 1.4rem !important;
   font-weight: 600 !important;
 }}
 
@@ -252,38 +273,34 @@ div[data-testid="stRadio"] label[data-checked="true"] {{
 
 # ── FILM REEL SVG ─────────────────────────────────────────────
 REEL_SVG = """
-<svg class="reel-svg" width="100" height="100" viewBox="0 0 100 100"
+<svg class="reel-svg" width="110" height="110" viewBox="0 0 110 110"
      xmlns="http://www.w3.org/2000/svg">
-  <!-- Outer ring -->
-  <circle cx="50" cy="50" r="46" stroke="#cc0033" stroke-width="5" fill="#1a0008"/>
-  <!-- Middle ring -->
-  <circle cx="50" cy="50" r="30" stroke="#cc0033" stroke-width="3" fill="#0d0005"/>
-  <!-- Center hub -->
-  <circle cx="50" cy="50" r="10" fill="#cc0033"/>
-  <!-- Spokes -->
-  <line x1="50" y1="40" x2="50" y2="22" stroke="#cc0033" stroke-width="3" stroke-linecap="round"/>
-  <line x1="50" y1="60" x2="50" y2="78" stroke="#cc0033" stroke-width="3" stroke-linecap="round"/>
-  <line x1="40" y1="50" x2="22" y2="50" stroke="#cc0033" stroke-width="3" stroke-linecap="round"/>
-  <line x1="60" y1="50" x2="78" y2="50" stroke="#cc0033" stroke-width="3" stroke-linecap="round"/>
-  <line x1="43" y1="43" x2="30" y2="30" stroke="#cc0033" stroke-width="3" stroke-linecap="round"/>
-  <line x1="57" y1="57" x2="70" y2="70" stroke="#cc0033" stroke-width="3" stroke-linecap="round"/>
-  <line x1="57" y1="43" x2="70" y2="30" stroke="#cc0033" stroke-width="3" stroke-linecap="round"/>
-  <line x1="43" y1="57" x2="30" y2="70" stroke="#cc0033" stroke-width="3" stroke-linecap="round"/>
-  <!-- Sprocket holes -->
-  <circle cx="50" cy="8"  r="5" fill="#cc0033"/>
-  <circle cx="50" cy="92" r="5" fill="#cc0033"/>
-  <circle cx="8"  cy="50" r="5" fill="#cc0033"/>
-  <circle cx="92" cy="50" r="5" fill="#cc0033"/>
-  <circle cx="22" cy="22" r="5" fill="#cc0033"/>
-  <circle cx="78" cy="78" r="5" fill="#cc0033"/>
-  <circle cx="78" cy="22" r="5" fill="#cc0033"/>
-  <circle cx="22" cy="78" r="5" fill="#cc0033"/>
+  <circle cx="55" cy="55" r="50" stroke="#cc0033" stroke-width="5" fill="#1a0008"/>
+  <circle cx="55" cy="55" r="33" stroke="#cc0033" stroke-width="3" fill="#0d0005"/>
+  <circle cx="55" cy="55" r="11" fill="#cc0033"/>
+  <line x1="55" y1="44" x2="55" y2="24" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="55" y1="66" x2="55" y2="86" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="44" y1="55" x2="24" y2="55" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="66" y1="55" x2="86" y2="55" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="47" y1="47" x2="33" y2="33" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="63" y1="63" x2="77" y2="77" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="63" y1="47" x2="77" y2="33" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="47" y1="63" x2="33" y2="77" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="55" cy="8"  r="5.5" fill="#cc0033"/>
+  <circle cx="55" cy="102" r="5.5" fill="#cc0033"/>
+  <circle cx="8"  cy="55" r="5.5" fill="#cc0033"/>
+  <circle cx="102" cy="55" r="5.5" fill="#cc0033"/>
+  <circle cx="24" cy="24" r="5.5" fill="#cc0033"/>
+  <circle cx="86" cy="86" r="5.5" fill="#cc0033"/>
+  <circle cx="86" cy="24" r="5.5" fill="#cc0033"/>
+  <circle cx="24" cy="86" r="5.5" fill="#cc0033"/>
 </svg>"""
 
 # ── CONSTANTS ─────────────────────────────────────────────────
-CONTENT_FILE  = "StreamMyMood_Content_Database.xlsx"
-TRAINING_FILE = "StreamMyMood_Training_Database.xlsx"
-MODEL_FILE    = "streammymood_model.pkl"
+CONTENT_FILE   = "StreamMyMood_Content_Database.xlsx"
+TRAINING_FILE  = "StreamMyMood_Training_Database.xlsx"
+MODEL_FILE     = "streammymood_model.pkl"
+FEEDBACK_FILE  = "feedback_training.csv"
 
 RUNTIME_RANGES = {
     "עד 30 דקות":  (0,   30),
@@ -323,14 +340,11 @@ LOADING_TEXTS = [
 @st.cache_data
 def load_data():
     content = pd.read_excel(CONTENT_FILE)
-
     def parse_rt(v):
         try: return int(str(v).replace("min","").replace("דקות","").strip())
         except: return None
-
     content["Runtime_Int"] = content["Runtime"].apply(parse_rt)
     content["Rating"] = pd.to_numeric(content["Rating"], errors="coerce")
-    # Do NOT fill missing ratings with mean — leave as NaN
     content["Major_Awards_Won"] = pd.to_numeric(
         content["Major_Awards_Won"], errors="coerce").fillna(0)
     content["ID"] = content["ID"].astype(str)
@@ -343,6 +357,14 @@ def load_data():
     }
     train.rename(columns={k:v for k,v in col_map.items() if k in train.columns}, inplace=True)
 
+    # Merge feedback if exists
+    if os.path.exists(FEEDBACK_FILE):
+        try:
+            fb = pd.read_csv(FEEDBACK_FILE)
+            train = pd.concat([train, fb], ignore_index=True)
+        except:
+            pass
+
     return content, train
 
 # ── MODEL ─────────────────────────────────────────────────────
@@ -350,10 +372,11 @@ def load_data():
 def load_or_train(_train_df, _content_df):
     if os.path.exists(MODEL_FILE):
         return joblib.load(MODEL_FILE)
+    return train_model(_train_df, _content_df)
 
-    valid = set(_content_df["Title"].tolist())
-    df    = _train_df[_train_df["Content_Title"].isin(valid)].copy()
-
+def train_model(train_df, content_df):
+    valid = set(content_df["Title"].tolist())
+    df    = train_df[train_df["Content_Title"].isin(valid)].copy()
     features = ["Duration_Limit","Watch_Group","User_Mood",
                 "Review_Importance","Award_Importance"]
     encoders = {}
@@ -362,49 +385,51 @@ def load_or_train(_train_df, _content_df):
         le = LabelEncoder()
         X[f] = le.fit_transform(df[f].astype(str))
         encoders[f] = le
-
-    # Target: content GENRE (learned pattern) not title
-    # We merge genre from content DB to learn mood→genre mapping
-    df2 = df.merge(
-        _content_df[["Title","Genre"]],
-        left_on="Content_Title", right_on="Title", how="left"
-    )
     le_target = LabelEncoder()
     y = le_target.fit_transform(df["Content_Title"].astype(str))
-
     X_tr, X_val, y_tr, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
     clf = RandomForestClassifier(
-        n_estimators=500,
-        max_depth=None,
-        min_samples_leaf=1,
-        class_weight="balanced",
-        random_state=42,
-        n_jobs=-1
-    )
+        n_estimators=500, class_weight="balanced",
+        random_state=42, n_jobs=-1)
     clf.fit(X_tr, y_tr)
-
-    data = {
-        "model": clf,
-        "encoders": encoders,
-        "le_target": le_target,
-        "features": features,
-        "accuracy": clf.score(X_val, y_val)
-    }
+    data = {"model":clf,"encoders":encoders,"le_target":le_target,
+            "features":features,"accuracy":clf.score(X_val,y_val)}
     joblib.dump(data, MODEL_FILE)
     return data
+
+# ── FEEDBACK: save like → retrain ─────────────────────────────
+def save_feedback(answers, content_title):
+    row = {
+        "User_Mood":        answers.get("mood",""),
+        "Duration_Limit":   answers.get("time_available",""),
+        "Watch_Group":      answers.get("watching_with",""),
+        "Review_Importance":answers.get("review_importance",""),
+        "Award_Importance": answers.get("awards_preference",""),
+        "Content_Title":    content_title,
+        "timestamp":        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    fb_df = pd.DataFrame([row])
+    if os.path.exists(FEEDBACK_FILE):
+        fb_df.to_csv(FEEDBACK_FILE, mode="a", header=False, index=False)
+    else:
+        fb_df.to_csv(FEEDBACK_FILE, index=False)
+
+    # Retrain model with new feedback
+    if os.path.exists(MODEL_FILE):
+        os.remove(MODEL_FILE)
+    st.cache_data.clear()
+    st.cache_resource.clear()
 
 # ── ENGINE ────────────────────────────────────────────────────
 def get_recommendations(answers, content_df, model_data, seen_ids=None):
     seen_ids = seen_ids or set()
+    mood           = answers.get("mood","")
+    time_choice    = answers.get("time_available","")
+    review_matters = answers.get("review_importance","") == "חשובות מאוד!"
+    awards_matter  = "כן" in answers.get("awards_preference","")
+    rt_min, rt_max = RUNTIME_RANGES.get(time_choice,(0,9999))
 
-    mood            = answers.get("mood","")
-    time_choice     = answers.get("time_available","")
-    review_matters  = answers.get("review_importance","") == "חשובות מאוד!"
-    awards_matter   = "כן" in answers.get("awards_preference","")
-
-    rt_min, rt_max = RUNTIME_RANGES.get(time_choice, (0, 9999))
-
-    # ── Dynamic weights based on user answers ──────────────────
+    # Dynamic weights
     if review_matters:
         w_model, w_rating, w_awards = 0.50, 0.40, 0.10
     elif awards_matter:
@@ -412,7 +437,6 @@ def get_recommendations(answers, content_df, model_data, seen_ids=None):
     else:
         w_model, w_rating, w_awards = 0.70, 0.20, 0.10
 
-    # ── Model probabilities ────────────────────────────────────
     answer_map = {
         "Duration_Limit":    time_choice,
         "Watch_Group":       answers.get("watching_with",""),
@@ -420,93 +444,69 @@ def get_recommendations(answers, content_df, model_data, seen_ids=None):
         "Review_Importance": answers.get("review_importance",""),
         "Award_Importance":  answers.get("awards_preference",""),
     }
-    clf      = model_data["model"]
-    encoders = model_data["encoders"]
-    le_target= model_data["le_target"]
-    features = model_data["features"]
+    clf=model_data["model"]; encoders=model_data["encoders"]
+    le_target=model_data["le_target"]; features=model_data["features"]
 
     row = {}
     for f in features:
-        le  = encoders[f]
-        val = answer_map[f]
+        le=encoders[f]; val=answer_map[f]
         row[f] = le.transform([val])[0] if val in le.classes_ else 0
 
     proba        = clf.predict_proba(pd.DataFrame([row])[features])[0]
-    known_titles = le_target.inverse_transform(clf.classes_)
-    model_scores = dict(zip(known_titles, proba))
+    model_scores = dict(zip(le_target.inverse_transform(clf.classes_), proba))
+    max_rating   = content_df["Rating"].dropna().max() or 10.0
 
-    # Max real rating (ignore NaN)
-    max_rating = content_df["Rating"].dropna().max() or 10.0
+    def score(c):
+        ms = model_scores.get(c["Title"],0.0)
+        r  = c.get("Rating")
+        nr = float(r)/max_rating if (r and not pd.isna(r)) else 0.5
+        aw = min(1.0,(c.get("Major_Awards_Won",0) or 0)/10.0)
+        return w_model*ms + w_rating*nr + w_awards*aw
 
-    def score_content(c):
-        # Model score — how likely this title given user's context
-        ms = model_scores.get(c["Title"], 0.0)
-
-        # Rating score — use actual rating, if missing use median not mean
-        r = c.get("Rating")
-        if pd.isna(r) or r is None:
-            norm_rating = 0.5  # neutral, not inflated
-        else:
-            norm_rating = float(r) / max_rating
-
-        # Awards score
-        aw = min(1.0, (c.get("Major_Awards_Won", 0) or 0) / 10.0)
-
-        return w_model * ms + w_rating * norm_rating + w_awards * aw
-
-    # ── Filter by runtime only (no mood hard-filter) ───────────
-    # The model already learned mood→content mapping from training data
+    # Pass 1: runtime filter
     results = []
-    for _, c in content_df.iterrows():
-        cid = str(c["ID"])
-        if cid in seen_ids:
-            continue
-        rt = c.get("Runtime_Int") or 0
-        if not (rt_min <= rt <= rt_max):
-            continue
-        results.append({"row": c, "score": score_content(c), "id": cid})
+    for _,c in content_df.iterrows():
+        cid=str(c["ID"])
+        if cid in seen_ids: continue
+        rt=c.get("Runtime_Int") or 0
+        if not (rt_min<=rt<=rt_max): continue
+        results.append({"row":c,"score":score(c),"id":cid})
+    results.sort(key=lambda x:x["score"],reverse=True)
 
-    results.sort(key=lambda x: x["score"], reverse=True)
-
-    # If fewer than 4 after runtime filter → relax runtime
-    if len(results) < 4:
-        seen2 = {r["id"] for r in results} | seen_ids
-        extras = []
-        for _, c in content_df.iterrows():
-            cid = str(c["ID"])
-            if cid in seen2:
-                continue
-            extras.append({"row": c, "score": score_content(c), "id": cid})
-        extras.sort(key=lambda x: x["score"], reverse=True)
-        results += extras
-        if results:
-            st.info("לא מצאנו תוכן מדויק לזמן שבחרת, אבל הנה התכנים שהכי מתאימים למצב הרוח שלך.")
+    # Pass 2: if <4, relax runtime
+    if len(results)<4:
+        seen2={r["id"] for r in results}|seen_ids
+        extras=[]
+        for _,c in content_df.iterrows():
+            cid=str(c["ID"])
+            if cid in seen2: continue
+            extras.append({"row":c,"score":score(c),"id":cid})
+        extras.sort(key=lambda x:x["score"],reverse=True)
+        results+=extras
 
     return results
 
 # ── HELPERS ───────────────────────────────────────────────────
 def stars(r):
     try:
-        f = max(0, min(5, round(float(r) / 2)))
-        return "★" * f + "☆" * (5 - f)
-    except:
-        return "☆☆☆☆☆"
+        f=max(0,min(5,round(float(r)/2)))
+        return "★"*f+"☆"*(5-f)
+    except: return "☆☆☆☆☆"
 
 def card_html(c):
-    poster = str(c.get("Poster_URL","") or "").strip()
+    poster=str(c.get("Poster_URL","") or "").strip()
     if not poster or poster in ["nan","None",""]:
-        poster = placeholder_src()
-    ph       = placeholder_src()
-    title    = c.get("Title","") or ""
-    year     = int(c["Year"]) if c.get("Year") and str(c["Year"]) not in ["nan",""] else "—"
-    runtime  = c.get("Runtime","—") or "—"
-    rating   = c.get("Rating")
-    rat_str  = f"{float(rating):.1f}" if rating and not pd.isna(rating) else "—"
-    stars_str= stars(rating) if rating and not pd.isna(rating) else "☆☆☆☆☆"
-    overview = c.get("Overview","") or ""
-    platform = c.get("Platform","") or ""
-    plat     = f'<div class="movie-platform">{platform}</div>' if platform else ""
-
+        poster=placeholder_src()
+    ph=placeholder_src()
+    title=c.get("Title","") or ""
+    year=int(c["Year"]) if c.get("Year") and str(c["Year"]) not in ["nan",""] else "—"
+    runtime=c.get("Runtime","—") or "—"
+    rating=c.get("Rating")
+    rat_str=f"{float(rating):.1f}" if rating and not pd.isna(rating) else "—"
+    stars_str=stars(rating) if rating and not pd.isna(rating) else "☆☆☆☆☆"
+    overview=c.get("Overview","") or ""
+    platform=c.get("Platform","") or ""
+    plat=f'<div class="movie-platform">{platform}</div>' if platform else ""
     return f"""
 <div class="movie-card">
   <img class="movie-poster" src="{poster}" alt="{title}"
@@ -520,10 +520,10 @@ def card_html(c):
 
 # ── SCREENS ───────────────────────────────────────────────────
 def screen_welcome():
-    st.markdown(logo_html(340), unsafe_allow_html=True)
-    h = datetime.now().hour
-    g = ("בוקר טוב" if h < 12 else "צהריים טובים" if h < 17 else
-         "ערב טוב" if h < 21 else "לילה טוב")
+    st.markdown(logo_html(380), unsafe_allow_html=True)
+    h=datetime.now().hour
+    g=("בוקר טוב" if h<12 else "צהריים טובים" if h<17 else
+       "ערב טוב" if h<21 else "לילה טוב")
     st.markdown(f"""
     <div class="center" style="margin-bottom:0.5rem">
       <span style="font-size:1.5rem;font-weight:800">{g}!</span>
@@ -531,23 +531,20 @@ def screen_welcome():
     <div class="center" style="margin-bottom:2.5rem">
       <span class="sub">ברוכים הבאים ל‑Stream My Mood<br>בואו נמצא לכם מה לראות.</span>
     </div>""", unsafe_allow_html=True)
-
-    c1, c2, c3 = st.columns([1, 2, 1])
+    c1,c2,c3=st.columns([1,2,1])
     with c2:
         if st.button("לחצו כאן כדי להתחיל!"):
             st.session_state.update({
-                "screen": "quiz", "q_index": 0, "answers": {},
-                "seen_ids": set(), "ranked": None
-            })
+                "screen":"quiz","q_index":0,"answers":{},
+                "seen_ids":set(),"ranked":None,"liked":set()})
             st.rerun()
 
 
 def screen_quiz():
-    st.markdown(logo_html(240), unsafe_allow_html=True)
-    q_idx = st.session_state.q_index
-    q     = QUESTIONS[q_idx]
-    total = len(QUESTIONS)
-    pct   = int((q_idx / total) * 100)
+    st.markdown(logo_html(280), unsafe_allow_html=True)
+    q_idx=st.session_state.q_index
+    q=QUESTIONS[q_idx]; total=len(QUESTIONS)
+    pct=int((q_idx/total)*100)
 
     st.markdown(f"""
     <div class="prog-outer">
@@ -555,7 +552,6 @@ def screen_quiz():
         <div class="prog-fill" style="width:{pct}%"></div>
       </div>
     </div>""", unsafe_allow_html=True)
-
     st.markdown(
         f'<div class="center" style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-bottom:0.8rem">'
         f'שאלה {q_idx+1} מתוך {total}</div>',
@@ -564,59 +560,68 @@ def screen_quiz():
         f'<div class="center big" style="margin-bottom:1.4rem">{q["text"]}</div>',
         unsafe_allow_html=True)
 
-    cur = st.session_state.answers.get(q["id"])
-    idx = q["options"].index(cur) if cur in q["options"] else 0
-    sel = st.radio("", q["options"], index=idx, key=f"r_{q_idx}")
-    st.session_state.answers[q["id"]] = sel
+    cur=st.session_state.answers.get(q["id"])
+    idx=q["options"].index(cur) if cur in q["options"] else 0
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    c1, c2, c3 = st.columns([1, 2, 1])
+    # Use selectbox instead of radio — no empty first option issue
+    sel=st.radio(
+        label="בחרו תשובה",
+        options=q["options"],
+        index=idx,
+        key=f"r_{q_idx}",
+        label_visibility="hidden"
+    )
+    st.session_state.answers[q["id"]]=sel
+
+    st.markdown("<br>",unsafe_allow_html=True)
+    c1,c2,c3=st.columns([1,2,1])
     with c2:
-        lbl = "לשאלה הבאה" if q_idx < total - 1 else "קבלו המלצות!"
+        lbl="לשאלה הבאה" if q_idx<total-1 else "קבלו המלצות!"
         if st.button(lbl):
-            if q_idx < total - 1:
-                st.session_state.q_index += 1
+            if q_idx<total-1:
+                st.session_state.q_index+=1
             else:
-                st.session_state.screen = "loading"
+                st.session_state.screen="loading"
             st.rerun()
 
 
 def screen_loading():
-    st.markdown(logo_html(240), unsafe_allow_html=True)
-    ph = st.empty()
+    st.markdown(logo_html(280), unsafe_allow_html=True)
+    ph=st.empty()
     for i in range(len(LOADING_TEXTS)):
         ph.markdown(f"""
         <div class="reel-wrap">
           {REEL_SVG}
           <div class="loading-txt">{LOADING_TEXTS[i]}</div>
         </div>""", unsafe_allow_html=True)
-        time.sleep(0.7)
-    st.session_state.screen = "results"
+        time.sleep(0.75)
+    st.session_state.screen="results"
     st.rerun()
 
 
 def screen_results(content_df, model_data):
-    st.markdown(logo_html(240), unsafe_allow_html=True)
-    answers  = st.session_state.answers
-    seen_ids = st.session_state.get("seen_ids", set())
+    st.markdown(logo_html(280), unsafe_allow_html=True)
+    answers  =st.session_state.answers
+    seen_ids =st.session_state.get("seen_ids",set())
+    liked    =st.session_state.get("liked",set())
 
     if not st.session_state.get("ranked"):
-        st.session_state.ranked = get_recommendations(
-            answers, content_df, model_data, set())
+        st.session_state.ranked=get_recommendations(
+            answers,content_df,model_data,set())
 
-    ranked    = st.session_state.ranked
-    remaining = [r for r in ranked if r["id"] not in seen_ids]
-    batch     = remaining[:4]
+    ranked   =st.session_state.ranked
+    remaining=[r for r in ranked if r["id"] not in seen_ids]
+    batch    =remaining[:4]
 
     if not batch:
         st.markdown(
             '<div class="center big" style="margin:2rem 0">לא קיימות המלצות נוספות בהתאם להגדרות שלך.</div>',
             unsafe_allow_html=True)
-        c1, c2, c3 = st.columns([1, 2, 1])
+        c1,c2,c3=st.columns([1,2,1])
         with c2:
             if st.button("התחל מחדש"):
-                for k in ["screen","q_index","answers","seen_ids","ranked"]:
-                    st.session_state.pop(k, None)
+                for k in ["screen","q_index","answers","seen_ids","ranked","liked"]:
+                    st.session_state.pop(k,None)
                 st.rerun()
         return
 
@@ -624,17 +629,28 @@ def screen_results(content_df, model_data):
         '<div class="center" style="font-size:1.25rem;font-weight:800;margin-bottom:1.4rem">ההמלצות שלנו עבורך</div>',
         unsafe_allow_html=True)
 
-    cols = st.columns(4)
-    for col, r in zip(cols, batch):
+    cols=st.columns(4)
+    for col,r in zip(cols,batch):
+        c=r["row"]; cid=r["id"]; title=c.get("Title","")
         with col:
-            st.markdown(card_html(r["row"]), unsafe_allow_html=True)
-        seen_ids.add(r["id"])
-    st.session_state.seen_ids = seen_ids
+            st.markdown(card_html(c),unsafe_allow_html=True)
+            # Like button
+            already_liked = cid in liked
+            btn_label = "❤️ אהבתי!" if already_liked else "👍 זה מתאים לי!"
+            if st.button(btn_label, key=f"like_{cid}"):
+                if not already_liked:
+                    save_feedback(answers, title)
+                    liked.add(cid)
+                    st.session_state.liked=liked
+                    st.success(f"תודה! {title} נוסף לאימון המודל")
+                    st.rerun()
+        seen_ids.add(cid)
+    st.session_state.seen_ids=seen_ids
 
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    next_avail = [r for r in ranked if r["id"] not in seen_ids]
+    st.markdown("<br><br>",unsafe_allow_html=True)
+    next_avail=[r for r in ranked if r["id"] not in seen_ids]
 
-    c1, c2, c3 = st.columns([1, 2, 1])
+    c1,c2,c3=st.columns([1,2,1])
     with c2:
         if next_avail:
             if st.button("לא אהבתי את ההמלצות האלה, אשמח להמלצות נוספות"):
@@ -643,26 +659,23 @@ def screen_results(content_df, model_data):
             st.markdown(
                 '<div class="center sub">לא קיימות המלצות נוספות בהתאם להגדרות שלך.</div>',
                 unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>",unsafe_allow_html=True)
         if st.button("התחל מחדש"):
-            for k in ["screen","q_index","answers","seen_ids","ranked"]:
-                st.session_state.pop(k, None)
+            for k in ["screen","q_index","answers","seen_ids","ranked","liked"]:
+                st.session_state.pop(k,None)
             st.rerun()
-
 
 # ── MAIN ──────────────────────────────────────────────────────
 def main():
     if "screen" not in st.session_state:
-        st.session_state.screen = "welcome"
+        st.session_state.screen="welcome"
+    content_df,train_df=load_data()
+    model_data=load_or_train(train_df,content_df)
+    s=st.session_state.screen
+    if   s=="welcome": screen_welcome()
+    elif s=="quiz":    screen_quiz()
+    elif s=="loading": screen_loading()
+    elif s=="results": screen_results(content_df,model_data)
 
-    content_df, train_df = load_data()
-    model_data = load_or_train(train_df, content_df)
-
-    s = st.session_state.screen
-    if   s == "welcome": screen_welcome()
-    elif s == "quiz":    screen_quiz()
-    elif s == "loading": screen_loading()
-    elif s == "results": screen_results(content_df, model_data)
-
-if __name__ == "__main__":
+if __name__=="__main__":
     main()
