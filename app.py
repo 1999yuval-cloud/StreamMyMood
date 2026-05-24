@@ -1,5 +1,5 @@
 # ============================================================
-#   StreamMyMood — app.py   v8
+#   StreamMyMood — app.py   v9
 # ============================================================
 
 import streamlit as st
@@ -28,12 +28,12 @@ def file_b64(path):
 LOGO_B64 = file_b64("logo - StreamMyMood.png")
 BG_B64   = file_b64("background.png")
 
-def logo_html(width=650):  # הגדלנו את ברירת המחדל של רוחב הלוגו משמעותית
+def logo_html(width=650):
     if LOGO_B64:
-        return (f'<div style="text-align:center;margin-bottom:2rem">'
+        return (f'<div style="text-align:center; margin-bottom: 0.5rem;">'  # צמצום משמעותי של הרווח מתחת ללוגו
                 f'<img src="data:image/png;base64,{LOGO_B64}" '
                 f'width="{width}" style="max-width:95vw; display: block; margin: 0 auto;"/></div>')
-    return '<div style="text-align:center;font-size:3.5rem;font-weight:900;color:#ff4d6d;margin-bottom:2rem">StreamMyMood</div>'
+    return '<div style="text-align:center;font-size:3.5rem;font-weight:900;color:#ff4d6d;margin-bottom:1rem">StreamMyMood</div>'
 
 def placeholder_src():
     if LOGO_B64:
@@ -70,7 +70,7 @@ html, body, * {{
 [data-testid="stAppViewContainer"]::before {{
   content: '';
   position: fixed; inset: 0;
-  background: rgba(15,0,6,0.82) !important; /* כהה מעט יותר בשביל ניגודיות מול הלוגו הגדול */
+  background: rgba(15,0,6,0.82) !important;
   pointer-events: none;
   z-index: 0;
 }}
@@ -89,13 +89,7 @@ section[data-testid="stSidebar"] {{ display: none !important; }}
 
 h1,h2,h3,p,label,div,span {{ color: white !important; }}
 
-/* ── יישור אלמנטים כללי למרכז ── */
-[data-testid="stVerticalBlock"] {{
-  align-items: center !important;
-  justify-content: center !important;
-}}
-
-/* ── Buttons centered (Main & Navigation) ── */
+/* ── יישור כפתורים ראשיים בלבד למרכז (בלי להרוס את ה-Radio) ── */
 .stButton {{
   display: flex !important;
   justify-content: center !important;
@@ -121,10 +115,10 @@ h1,h2,h3,p,label,div,span {{ color: white !important; }}
   transform: translateY(-2px) !important;
 }}
 
-/* ── כפתור ה-Like תחת כרטיסיית הסרט (קטן וקומפקטי יותר) ── */
+/* ── כפתור ה-Like תחת כרטיסיית הסרט (קטן וקומפקטי) ── */
 div[data-testid="stColumn"] .stButton > button {{
   min-width: unset !important;
-  width: 85% !important;   /* מקטין את כפתור ה"מתאים לי" שלא יתפרס על כל רוחב הכרטיסייה */
+  width: 85% !important;   
   padding: 0.4rem 1.2rem !important;
   font-size: 0.88rem !important;
   border-radius: 20px !important;
@@ -132,13 +126,12 @@ div[data-testid="stColumn"] .stButton > button {{
   margin-top: 0.5rem !important;
 }}
 
-/* ── Radio — hide Streamlit's own circle + label ── */
+/* ── תיקון ה-Radio שנמרח: שמירה על רוחב קבוע ומראה מקורי ── */
 div[data-testid="stRadio"] > label {{ display: none !important; }}
 div[data-testid="stRadio"] > div {{
   display: flex !important;
   flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
+  align-items: center !important; /* יישור הקופסאות עצמן למרכז הדף */
   gap: 0.55rem !important;
   width: 100% !important;
 }}
@@ -148,7 +141,7 @@ div[data-testid="stRadio"] label {{
   border: 1.5px solid rgba(255,255,255,0.2) !important;
   border-radius: 14px !important;
   padding: 0.85rem 2rem !important;
-  width: 520px !important;
+  width: 520px !important; /* החזרת הרוחב המקורי והיפה שלך */
   max-width: 88vw !important;
   cursor: pointer !important;
   transition: all 0.2s !important;
@@ -160,7 +153,6 @@ div[data-testid="stRadio"] label {{
   align-items: center !important;
   justify-content: center !important;
   min-height: 54px !important;
-  margin: 0 auto !important;
 }}
 div[data-testid="stRadio"] > div > label:has(> div:empty) {{ display: none !important; }}
 div[data-testid="stRadio"] > div > label:first-child:not(:has(p)) {{ display: none !important; }}
@@ -236,12 +228,12 @@ div[data-testid="stRadio"] label[data-checked="true"] {{
   height: 100px; overflow-y: auto; line-height: 1.55;
 }}
 
-/* ── אנימציה חלקה של סרט נע זז ── */
+/* ── אנימציה חלקה של סרט נע ── */
 .reel-wrap {{ text-align: center; padding: 3rem 0; }}
 .film-icon {{
   font-size: 4.5rem;
   display: inline-block;
-  animation: filmStripScroll 2s linear infinite; /* תנועה רציפה וחלקה הצידה */
+  animation: filmStripScroll 2s linear infinite;
   filter: drop-shadow(0 0 12px rgba(200,0,50,0.6));
 }}
 @keyframes filmStripScroll {{
@@ -257,12 +249,12 @@ div[data-testid="stRadio"] label[data-checked="true"] {{
 }}
 
 .center {{ text-align: center !important; width: 100%; }}
-.big    {{ font-size: 1.35rem !important; font-weight: 800 !important; }}
-.sub    {{ font-size: 1rem !important; color: rgba(255,255,255,0.78) !important; line-height: 1.7; }}
+.big    {{ font-size: 1.5rem !important; font-weight: 800 !important; }} /* הגדלנו את כותרת השאלות */
+.sub    {{ font-size: 1.2rem !important; color: rgba(255,255,255,0.85) !important; line-height: 1.7; }} /* הגדלנו את תת-הכותרת */
 </style>
 """, unsafe_allow_html=True)
 
-# ── FILM STRIP EMOTICON (החלפנו לסרט נע) ───────────────────────
+# ── FILM STRIP EMOTICON ───────────────────────────────────────
 REEL_SVG = '<span class="film-icon">🎞️</span>'
 
 # ── CONSTANTS ─────────────────────────────────────────────────
@@ -365,7 +357,7 @@ def train_model(train_df, content_df):
     joblib.dump(data, MODEL_FILE)
     return data
 
-# ── FEEDBACK: save like → retrain ─────────────────────────────
+# ── FEEDBACK ──────────────────────────────────────────────────
 def save_feedback(answers, content_title):
     row = {
         "User_Mood":        answers.get("mood",""),
@@ -484,19 +476,20 @@ def card_html(c):
 
 # ── SCREENS ───────────────────────────────────────────────────
 def screen_welcome():
-    st.markdown(logo_html(580), unsafe_allow_html=True) # לוגו מוגדל ונוכח במסך הבית
+    st.markdown(logo_html(650), unsafe_allow_html=True) 
     h=datetime.now().hour
     g=("בוקר טוב" if h<12 else "צהריים טובים" if h<17 else
        "ערב טוב" if h<21 else "לילה טוב")
+    
+    # הגדלנו את הגופן ל-1.9rem וצמצמנו מרווחים למעלה
     st.markdown(f"""
-    <div class="center" style="margin-bottom:0.5rem">
-      <span style="font-size:1.6rem;font-weight:800">{g}!</span>
+    <div class="center" style="margin-top: -0.5rem; margin-bottom: 0.2rem;">
+      <span style="font-size: 1.9rem; font-weight: 800; color: white !important;">{g}!</span>
     </div>
-    <div class="center" style="margin-bottom:2.5rem">
+    <div class="center" style="margin-bottom: 2rem;">
       <span class="sub">ברוכים הבאים ל‑Stream My Mood<br>בואו נמצא לכם מה לראות.</span>
     </div>""", unsafe_allow_html=True)
     
-    # שימוש בטכניקת עמודות ריקות בצדדים כדי להכריח את הכפתור לשבת בול במרכז הנדסי
     c1,c2,c3=st.columns([1.2, 1.5, 1.2])
     with c2:
         if st.button("לחצו כאן כדי להתחיל!"):
@@ -507,7 +500,7 @@ def screen_welcome():
 
 
 def screen_quiz():
-    st.markdown(logo_html(360), unsafe_allow_html=True) # לוגו מוגדל במסך השאלון
+    st.markdown(logo_html(360), unsafe_allow_html=True) 
     q_idx=st.session_state.q_index
     q=QUESTIONS[q_idx]; total=len(QUESTIONS)
     pct=int((q_idx/total)*100)
@@ -521,7 +514,6 @@ def screen_quiz():
     st.markdown(
         f'<div class="center" style="font-size:0.88rem;color:rgba(255,255,255,0.5);margin-bottom:0.8rem">'
         f'שאלה {q_idx+1} מתוך {total}</div>',
-        f'<div></div>', # אלמנט עזר קטן ליישור היררכי
         unsafe_allow_html=True)
     st.markdown(
         f'<div class="center big" style="margin-bottom:1.8rem">{q["text"]}</div>',
@@ -541,7 +533,6 @@ def screen_quiz():
 
     st.markdown("<br>",unsafe_allow_html=True)
     
-    # מרכז בצורה מושלמת את כפתור הניווט של השאלות
     c1,c2,c3=st.columns([1.2, 1.5, 1.2])
     with c2:
         lbl="לשאלה הבאה" if q_idx<total-1 else "קבלו המלצות!"
@@ -606,7 +597,6 @@ def screen_results(content_df, model_data):
             already_liked = cid in liked
             btn_label = "❤️ אהבתי!" if already_liked else "👍 מתאים לי"
             
-            # הכפתור מוגדר כאן ויוצר אינטראקציה מוקטנת באמצעות ה-CSS הייעודי שכתבנו למעלה לעמודות
             if st.button(btn_label, key=f"like_{cid}"):
                 if not already_liked:
                     save_feedback(answers, title)
