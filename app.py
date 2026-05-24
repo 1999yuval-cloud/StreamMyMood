@@ -28,7 +28,7 @@ def file_b64(path):
 LOGO_B64 = file_b64("logo - StreamMyMood.png")
 BG_B64   = file_b64("background.png")
 
-def logo_html(width=380):
+def logo_html(width=460):
     if LOGO_B64:
         return (f'<div style="text-align:center;margin-bottom:1.4rem">'
                 f'<img src="data:image/png;base64,{LOGO_B64}" '
@@ -228,14 +228,16 @@ div[data-testid="stRadio"] label[data-checked="true"] {{
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 20px;
-  padding: 0.3rem 1rem;
-  font-size: 0.85rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
   color: white;
   cursor: pointer;
-  margin-top: 0.5rem;
-  width: 100%;
+  margin-top: 0.4rem;
+  width: auto;
+  min-width: 80px;
   transition: all 0.2s;
   text-align: center;
+  display: inline-block;
 }}
 .like-btn:hover {{
   background: rgba(180,0,50,0.4);
@@ -247,16 +249,17 @@ div[data-testid="stRadio"] label[data-checked="true"] {{
   color: #ff9ab0;
 }}
 
-/* ── Film reel loading ── */
+/* ── Film animation loading ── */
 .reel-wrap {{ text-align: center; padding: 3rem 0; }}
-.reel-svg {{
+.film-icon {{
+  font-size: 4.5rem;
   display: inline-block;
-  animation: spin 1.6s linear infinite;
-  filter: drop-shadow(0 0 14px rgba(200,0,50,0.7));
+  animation: movieRoll 1.5s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 12px rgba(200,0,50,0.6));
 }}
-@keyframes spin {{
-  from {{ transform: rotate(0deg); }}
-  to   {{ transform: rotate(360deg); }}
+@keyframes movieRoll {{
+  0%   {{ transform: translateX(-20px) rotate(0deg); }}
+  100% {{ transform: translateX(20px) rotate(360deg); }}
 }}
 .loading-txt {{
   font-size: 1.2rem !important;
@@ -272,29 +275,7 @@ div[data-testid="stRadio"] label[data-checked="true"] {{
 """, unsafe_allow_html=True)
 
 # ── FILM REEL SVG ─────────────────────────────────────────────
-REEL_SVG = """
-<svg class="reel-svg" width="110" height="110" viewBox="0 0 110 110"
-     xmlns="http://www.w3.org/2000/svg">
-  <circle cx="55" cy="55" r="50" stroke="#cc0033" stroke-width="5" fill="#1a0008"/>
-  <circle cx="55" cy="55" r="33" stroke="#cc0033" stroke-width="3" fill="#0d0005"/>
-  <circle cx="55" cy="55" r="11" fill="#cc0033"/>
-  <line x1="55" y1="44" x2="55" y2="24" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="55" y1="66" x2="55" y2="86" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="44" y1="55" x2="24" y2="55" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="66" y1="55" x2="86" y2="55" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="47" y1="47" x2="33" y2="33" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="63" y1="63" x2="77" y2="77" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="63" y1="47" x2="77" y2="33" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
-  <line x1="47" y1="63" x2="33" y2="77" stroke="#cc0033" stroke-width="3.5" stroke-linecap="round"/>
-  <circle cx="55" cy="8"  r="5.5" fill="#cc0033"/>
-  <circle cx="55" cy="102" r="5.5" fill="#cc0033"/>
-  <circle cx="8"  cy="55" r="5.5" fill="#cc0033"/>
-  <circle cx="102" cy="55" r="5.5" fill="#cc0033"/>
-  <circle cx="24" cy="24" r="5.5" fill="#cc0033"/>
-  <circle cx="86" cy="86" r="5.5" fill="#cc0033"/>
-  <circle cx="86" cy="24" r="5.5" fill="#cc0033"/>
-  <circle cx="24" cy="86" r="5.5" fill="#cc0033"/>
-</svg>"""
+REEL_SVG = '<span class="film-icon">🎬</span>'
 
 # ── CONSTANTS ─────────────────────────────────────────────────
 CONTENT_FILE   = "StreamMyMood_Content_Database.xlsx"
