@@ -729,12 +729,15 @@ def screen_results(content_df, model_data):
 def main():
     if "screen" not in st.session_state:
         st.session_state.screen="welcome"
-    # Force retrain if model exists (temporary — remove after one deploy)
-    if os.path.exists(MODEL_FILE):
-        os.remove(MODEL_FILE)
-        st.cache_resource.clear()
+
     content_df,train_df=load_data()
-    model_data=load_or_train(train_df,content_df)
+
+    # Train model only once per session
+    if "model_data" not in st.session_state:
+        with st.spinner("מכין את המערכת..."):
+            st.session_state.model_data = load_or_train(train_df,content_df)
+    model_data = st.session_state.model_data
+
     s=st.session_state.screen
     if   s=="welcome": screen_welcome()
     elif s=="quiz":    screen_quiz()
