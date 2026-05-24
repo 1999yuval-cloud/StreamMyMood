@@ -1,5 +1,5 @@
 # ============================================================
-#  StreamMyMood — app.py  v7
+#   StreamMyMood — app.py   v8
 # ============================================================
 
 import streamlit as st
@@ -28,12 +28,12 @@ def file_b64(path):
 LOGO_B64 = file_b64("logo - StreamMyMood.png")
 BG_B64   = file_b64("background.png")
 
-def logo_html(width=460):
+def logo_html(width=650):  # הגדלנו את ברירת המחדל של רוחב הלוגו משמעותית
     if LOGO_B64:
-        return (f'<div style="text-align:center;margin-bottom:1.4rem">'
+        return (f'<div style="text-align:center;margin-bottom:2rem">'
                 f'<img src="data:image/png;base64,{LOGO_B64}" '
-                f'width="{width}" style="max-width:92vw"/></div>')
-    return '<div style="text-align:center;font-size:2.5rem;font-weight:900;color:#ff4d6d;margin-bottom:1.4rem">StreamMyMood</div>'
+                f'width="{width}" style="max-width:95vw; display: block; margin: 0 auto;"/></div>')
+    return '<div style="text-align:center;font-size:3.5rem;font-weight:900;color:#ff4d6d;margin-bottom:2rem">StreamMyMood</div>'
 
 def placeholder_src():
     if LOGO_B64:
@@ -70,7 +70,7 @@ html, body, * {{
 [data-testid="stAppViewContainer"]::before {{
   content: '';
   position: fixed; inset: 0;
-  background: rgba(15,0,6,0.75);
+  background: rgba(15,0,6,0.82) !important; /* כהה מעט יותר בשביל ניגודיות מול הלוגו הגדול */
   pointer-events: none;
   z-index: 0;
 }}
@@ -81,7 +81,7 @@ section[data-testid="stSidebar"] {{ display: none !important; }}
 
 .block-container {{
   padding-top: 2rem !important;
-  max-width: 1150px !important;
+  max-width: 1200px !important;
   margin: 0 auto !important;
   position: relative;
   z-index: 1;
@@ -89,7 +89,13 @@ section[data-testid="stSidebar"] {{ display: none !important; }}
 
 h1,h2,h3,p,label,div,span {{ color: white !important; }}
 
-/* ── Buttons centered ── */
+/* ── יישור אלמנטים כללי למרכז ── */
+[data-testid="stVerticalBlock"] {{
+  align-items: center !important;
+  justify-content: center !important;
+}}
+
+/* ── Buttons centered (Main & Navigation) ── */
 .stButton {{
   display: flex !important;
   justify-content: center !important;
@@ -108,10 +114,22 @@ h1,h2,h3,p,label,div,span {{ color: white !important; }}
   transition: all 0.2s !important;
   box-shadow: 0 4px 18px rgba(180,0,50,0.4) !important;
   direction: rtl !important;
+  margin: 0 auto !important;
 }}
 .stButton > button:hover {{
   background: linear-gradient(135deg, #b30030, #d4003a) !important;
   transform: translateY(-2px) !important;
+}}
+
+/* ── כפתור ה-Like תחת כרטיסיית הסרט (קטן וקומפקטי יותר) ── */
+div[data-testid="stColumn"] .stButton > button {{
+  min-width: unset !important;
+  width: 85% !important;   /* מקטין את כפתור ה"מתאים לי" שלא יתפרס על כל רוחב הכרטיסייה */
+  padding: 0.4rem 1.2rem !important;
+  font-size: 0.88rem !important;
+  border-radius: 20px !important;
+  box-shadow: 0 2px 10px rgba(180,0,50,0.2) !important;
+  margin-top: 0.5rem !important;
 }}
 
 /* ── Radio — hide Streamlit's own circle + label ── */
@@ -120,12 +138,11 @@ div[data-testid="stRadio"] > div {{
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
+  justify-content: center !important;
   gap: 0.55rem !important;
   width: 100% !important;
 }}
-/* Hide the radio circle input */
 div[data-testid="stRadio"] input {{ display: none !important; }}
-/* Style every option label */
 div[data-testid="stRadio"] label {{
   background: rgba(255,255,255,0.07) !important;
   border: 1.5px solid rgba(255,255,255,0.2) !important;
@@ -143,14 +160,10 @@ div[data-testid="stRadio"] label {{
   align-items: center !important;
   justify-content: center !important;
   min-height: 54px !important;
+  margin: 0 auto !important;
 }}
-/* Hide empty first option that Streamlit sometimes adds */
-div[data-testid="stRadio"] > div > label:has(> div:empty) {{
-  display: none !important;
-}}
-div[data-testid="stRadio"] > div > label:first-child:not(:has(p)) {{
-  display: none !important;
-}}
+div[data-testid="stRadio"] > div > label:has(> div:empty) {{ display: none !important; }}
+div[data-testid="stRadio"] > div > label:first-child:not(:has(p)) {{ display: none !important; }}
 div[data-testid="stRadio"] label:hover {{
   background: rgba(180,0,50,0.28) !important;
   border-color: rgba(255,100,130,0.6) !important;
@@ -223,43 +236,18 @@ div[data-testid="stRadio"] label[data-checked="true"] {{
   height: 100px; overflow-y: auto; line-height: 1.55;
 }}
 
-/* ── Like button ── */
-.like-btn {{
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 20px;
-  padding: 0.2rem 0.6rem;
-  font-size: 0.75rem;
-  color: white;
-  cursor: pointer;
-  margin-top: 0.4rem;
-  width: auto;
-  min-width: 80px;
-  transition: all 0.2s;
-  text-align: center;
-  display: inline-block;
-}}
-.like-btn:hover {{
-  background: rgba(180,0,50,0.4);
-  border-color: #ff4d6d;
-}}
-.like-btn.liked {{
-  background: rgba(180,0,50,0.6);
-  border-color: #ff4d6d;
-  color: #ff9ab0;
-}}
-
-/* ── Film animation loading ── */
+/* ── אנימציה חלקה של סרט נע זז ── */
 .reel-wrap {{ text-align: center; padding: 3rem 0; }}
 .film-icon {{
   font-size: 4.5rem;
   display: inline-block;
-  animation: movieRoll 1.5s ease-in-out infinite alternate;
+  animation: filmStripScroll 2s linear infinite; /* תנועה רציפה וחלקה הצידה */
   filter: drop-shadow(0 0 12px rgba(200,0,50,0.6));
 }}
-@keyframes movieRoll {{
-  0%   {{ transform: translateX(-20px) rotate(0deg); }}
-  100% {{ transform: translateX(20px) rotate(360deg); }}
+@keyframes filmStripScroll {{
+  0%   {{ transform: translateX(-30px); }}
+  50%  {{ transform: translateX(30px); }}
+  100% {{ transform: translateX(-30px); }}
 }}
 .loading-txt {{
   font-size: 1.2rem !important;
@@ -268,14 +256,14 @@ div[data-testid="stRadio"] label[data-checked="true"] {{
   font-weight: 600 !important;
 }}
 
-.center {{ text-align: center !important; }}
+.center {{ text-align: center !important; width: 100%; }}
 .big    {{ font-size: 1.35rem !important; font-weight: 800 !important; }}
 .sub    {{ font-size: 1rem !important; color: rgba(255,255,255,0.78) !important; line-height: 1.7; }}
 </style>
 """, unsafe_allow_html=True)
 
-# ── FILM REEL SVG ─────────────────────────────────────────────
-REEL_SVG = '<span class="film-icon">🎬</span>'
+# ── FILM STRIP EMOTICON (החלפנו לסרט נע) ───────────────────────
+REEL_SVG = '<span class="film-icon">🎞️</span>'
 
 # ── CONSTANTS ─────────────────────────────────────────────────
 CONTENT_FILE   = "StreamMyMood_Content_Database.xlsx"
@@ -338,7 +326,6 @@ def load_data():
     }
     train.rename(columns={k:v for k,v in col_map.items() if k in train.columns}, inplace=True)
 
-    # Merge feedback if exists
     if os.path.exists(FEEDBACK_FILE):
         try:
             fb = pd.read_csv(FEEDBACK_FILE)
@@ -395,7 +382,6 @@ def save_feedback(answers, content_title):
     else:
         fb_df.to_csv(FEEDBACK_FILE, index=False)
 
-    # Retrain model with new feedback
     if os.path.exists(MODEL_FILE):
         os.remove(MODEL_FILE)
     st.cache_data.clear()
@@ -410,7 +396,6 @@ def get_recommendations(answers, content_df, model_data, seen_ids=None):
     awards_matter  = "כן" in answers.get("awards_preference","")
     rt_min, rt_max = RUNTIME_RANGES.get(time_choice,(0,9999))
 
-    # Dynamic weights
     if review_matters:
         w_model, w_rating, w_awards = 0.50, 0.40, 0.10
     elif awards_matter:
@@ -444,7 +429,6 @@ def get_recommendations(answers, content_df, model_data, seen_ids=None):
         aw = min(1.0,(c.get("Major_Awards_Won",0) or 0)/10.0)
         return w_model*ms + w_rating*nr + w_awards*aw
 
-    # Pass 1: runtime filter
     results = []
     for _,c in content_df.iterrows():
         cid=str(c["ID"])
@@ -454,7 +438,6 @@ def get_recommendations(answers, content_df, model_data, seen_ids=None):
         results.append({"row":c,"score":score(c),"id":cid})
     results.sort(key=lambda x:x["score"],reverse=True)
 
-    # Pass 2: if <4, relax runtime
     if len(results)<4:
         seen2={r["id"] for r in results}|seen_ids
         extras=[]
@@ -501,18 +484,20 @@ def card_html(c):
 
 # ── SCREENS ───────────────────────────────────────────────────
 def screen_welcome():
-    st.markdown(logo_html(380), unsafe_allow_html=True)
+    st.markdown(logo_html(580), unsafe_allow_html=True) # לוגו מוגדל ונוכח במסך הבית
     h=datetime.now().hour
     g=("בוקר טוב" if h<12 else "צהריים טובים" if h<17 else
        "ערב טוב" if h<21 else "לילה טוב")
     st.markdown(f"""
     <div class="center" style="margin-bottom:0.5rem">
-      <span style="font-size:1.5rem;font-weight:800">{g}!</span>
+      <span style="font-size:1.6rem;font-weight:800">{g}!</span>
     </div>
     <div class="center" style="margin-bottom:2.5rem">
       <span class="sub">ברוכים הבאים ל‑Stream My Mood<br>בואו נמצא לכם מה לראות.</span>
     </div>""", unsafe_allow_html=True)
-    c1,c2,c3=st.columns([1,2,1])
+    
+    # שימוש בטכניקת עמודות ריקות בצדדים כדי להכריח את הכפתור לשבת בול במרכז הנדסי
+    c1,c2,c3=st.columns([1.2, 1.5, 1.2])
     with c2:
         if st.button("לחצו כאן כדי להתחיל!"):
             st.session_state.update({
@@ -522,7 +507,7 @@ def screen_welcome():
 
 
 def screen_quiz():
-    st.markdown(logo_html(280), unsafe_allow_html=True)
+    st.markdown(logo_html(360), unsafe_allow_html=True) # לוגו מוגדל במסך השאלון
     q_idx=st.session_state.q_index
     q=QUESTIONS[q_idx]; total=len(QUESTIONS)
     pct=int((q_idx/total)*100)
@@ -534,17 +519,17 @@ def screen_quiz():
       </div>
     </div>""", unsafe_allow_html=True)
     st.markdown(
-        f'<div class="center" style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-bottom:0.8rem">'
+        f'<div class="center" style="font-size:0.88rem;color:rgba(255,255,255,0.5);margin-bottom:0.8rem">'
         f'שאלה {q_idx+1} מתוך {total}</div>',
+        f'<div></div>', # אלמנט עזר קטן ליישור היררכי
         unsafe_allow_html=True)
     st.markdown(
-        f'<div class="center big" style="margin-bottom:1.4rem">{q["text"]}</div>',
+        f'<div class="center big" style="margin-bottom:1.8rem">{q["text"]}</div>',
         unsafe_allow_html=True)
 
     cur=st.session_state.answers.get(q["id"])
     idx=q["options"].index(cur) if cur in q["options"] else 0
 
-    # Use selectbox instead of radio — no empty first option issue
     sel=st.radio(
         label="בחרו תשובה",
         options=q["options"],
@@ -555,7 +540,9 @@ def screen_quiz():
     st.session_state.answers[q["id"]]=sel
 
     st.markdown("<br>",unsafe_allow_html=True)
-    c1,c2,c3=st.columns([1,2,1])
+    
+    # מרכז בצורה מושלמת את כפתור הניווט של השאלות
+    c1,c2,c3=st.columns([1.2, 1.5, 1.2])
     with c2:
         lbl="לשאלה הבאה" if q_idx<total-1 else "קבלו המלצות!"
         if st.button(lbl):
@@ -567,7 +554,7 @@ def screen_quiz():
 
 
 def screen_loading():
-    st.markdown(logo_html(280), unsafe_allow_html=True)
+    st.markdown(logo_html(360), unsafe_allow_html=True)
     ph=st.empty()
     for i in range(len(LOADING_TEXTS)):
         ph.markdown(f"""
@@ -581,7 +568,7 @@ def screen_loading():
 
 
 def screen_results(content_df, model_data):
-    st.markdown(logo_html(280), unsafe_allow_html=True)
+    st.markdown(logo_html(320), unsafe_allow_html=True)
     answers  =st.session_state.answers
     seen_ids =st.session_state.get("seen_ids",set())
     liked    =st.session_state.get("liked",set())
@@ -598,7 +585,7 @@ def screen_results(content_df, model_data):
         st.markdown(
             '<div class="center big" style="margin:2rem 0">לא קיימות המלצות נוספות בהתאם להגדרות שלך.</div>',
             unsafe_allow_html=True)
-        c1,c2,c3=st.columns([1,2,1])
+        c1,c2,c3=st.columns([1.2, 1.5, 1.2])
         with c2:
             if st.button("התחל מחדש"):
                 for k in ["screen","q_index","answers","seen_ids","ranked","liked"]:
@@ -607,7 +594,7 @@ def screen_results(content_df, model_data):
         return
 
     st.markdown(
-        '<div class="center" style="font-size:1.25rem;font-weight:800;margin-bottom:1.4rem">ההמלצות שלנו עבורך</div>',
+        '<div class="center" style="font-size:1.3rem;font-weight:800;margin-bottom:1.6rem">ההמלצות שלנו עבורך</div>',
         unsafe_allow_html=True)
 
     cols=st.columns(4)
@@ -615,15 +602,18 @@ def screen_results(content_df, model_data):
         c=r["row"]; cid=r["id"]; title=c.get("Title","")
         with col:
             st.markdown(card_html(c),unsafe_allow_html=True)
-            # Like button
+            
             already_liked = cid in liked
-            btn_label = "❤️ אהבתי!" if already_liked else "👍 זה מתאים לי!"
+            btn_label = "❤️ אהבתי!" if already_liked else "👍 מתאים לי"
+            
+            # הכפתור מוגדר כאן ויוצר אינטראקציה מוקטנת באמצעות ה-CSS הייעודי שכתבנו למעלה לעמודות
             if st.button(btn_label, key=f"like_{cid}"):
                 if not already_liked:
                     save_feedback(answers, title)
                     liked.add(cid)
                     st.session_state.liked=liked
-                    st.success(f"תודה! {title} נוסף לאימון המודל")
+                    st.success(f"{title} התווסף למודל!")
+                    time.sleep(0.5)
                     st.rerun()
         seen_ids.add(cid)
     st.session_state.seen_ids=seen_ids
@@ -631,7 +621,7 @@ def screen_results(content_df, model_data):
     st.markdown("<br><br>",unsafe_allow_html=True)
     next_avail=[r for r in ranked if r["id"] not in seen_ids]
 
-    c1,c2,c3=st.columns([1,2,1])
+    c1,c2,c3=st.columns([1.1, 1.8, 1.1])
     with c2:
         if next_avail:
             if st.button("לא אהבתי את ההמלצות האלה, אשמח להמלצות נוספות"):
