@@ -124,13 +124,13 @@ h1,h2,h3,p,label,div,span {{ color: white !important; }}
   box-shadow: 0 4px 18px rgba(180,0,50,0.4) !important;
   direction: rtl !important;
 }}
-/* Like buttons inside movie cards — small */
-[data-testid="column"] [data-testid="column"] .stButton > button {{
-  min-width: 80px !important;
-  padding: 0.35rem 0.8rem !important;
-  font-size: 0.88rem !important;
+/* Like button — key trick: target by content width override */
+[data-testid="column"] > div > div > div > div > div > div > .stButton > button {{
+  min-width: 10px !important;
+  width: auto !important;
+  padding: 0.4rem 1.2rem !important;
+  font-size: 0.9rem !important;
   box-shadow: none !important;
-  background: rgba(100,0,25,0.7) !important;
 }}
 /* Like button override — small */
 .stButton.like-small > button {{
@@ -539,7 +539,7 @@ def screen_welcome():
     g=("בוקר טוב" if h<12 else "צהריים טובים" if h<17 else
        "ערב טוב" if h<21 else "לילה טוב")
     st.markdown(f"""
-    <div class="center" style="margin-bottom:0.3rem;margin-top:0.2rem">
+    <div class="center" style="margin-bottom:0.2rem;margin-top:-1rem">
       <span style="font-size:2.2rem;font-weight:900;letter-spacing:-0.5px">{g}!</span>
     </div>
     <div class="center" style="margin-bottom:1.8rem">
@@ -555,7 +555,7 @@ def screen_welcome():
 
 
 def screen_quiz():
-    st.markdown(logo_html(420), unsafe_allow_html=True)
+    st.markdown(logo_html(680), unsafe_allow_html=True)
     q_idx=st.session_state.q_index
     q=QUESTIONS[q_idx]; total=len(QUESTIONS)
     pct=int((q_idx/total)*100)
@@ -600,7 +600,7 @@ def screen_quiz():
 
 
 def screen_loading():
-    st.markdown(logo_html(420), unsafe_allow_html=True)
+    st.markdown(logo_html(680), unsafe_allow_html=True)
     ph=st.empty()
     for i in range(len(LOADING_TEXTS)):
         ph.markdown(f"""
@@ -614,7 +614,7 @@ def screen_loading():
 
 
 def screen_results(content_df, model_data):
-    st.markdown(logo_html(420), unsafe_allow_html=True)
+    st.markdown(logo_html(680), unsafe_allow_html=True)
     answers  =st.session_state.answers
     seen_ids =st.session_state.get("seen_ids",set())
     liked    =st.session_state.get("liked",set())
@@ -648,17 +648,18 @@ def screen_results(content_df, model_data):
         c=r["row"]; cid=r["id"]; title=c.get("Title","")
         with col:
             st.markdown(card_html(c),unsafe_allow_html=True)
-            # Like button — narrow
+            # Like button — use markdown + form trick for narrow button
             already_liked = cid in liked
-            btn_label = "❤️ אהבתי" if already_liked else "👍 מתאים לי"
-            lc1, lc2, lc3 = st.columns([1,2,1])
-            with lc2:
-                if st.button(btn_label, key=f"like_{cid}"):
-                    if not already_liked:
+            if already_liked:
+                st.markdown('<div style="text-align:center;color:#ff9ab0;font-size:1rem;margin-top:0.3rem">❤️ נוסף לאימון!</div>', unsafe_allow_html=True)
+            else:
+                # Narrow column = narrow button
+                _l, _m, _r = st.columns([2,3,2])
+                with _m:
+                    if st.button("👍 מתאים לי", key=f"like_{cid}"):
                         save_feedback(answers, title)
                         liked.add(cid)
                         st.session_state.liked=liked
-                        st.success(f"תודה! {title} נוסף לאימון המודל")
                         st.rerun()
         seen_ids.add(cid)
     st.session_state.seen_ids=seen_ids
