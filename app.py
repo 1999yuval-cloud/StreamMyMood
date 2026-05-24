@@ -30,7 +30,7 @@ BG_B64   = file_b64("background.png")
 
 def logo_html(width=680):
     if LOGO_B64:
-        return (f'<div style="text-align:center;margin-bottom:0.4rem">'
+        return (f'<div style="text-align:center;margin-bottom:0rem">'
                 f'<img src="data:image/png;base64,{LOGO_B64}" '
                 f'width="{width}" style="max-width:92vw"/></div>')
     return '<div style="text-align:center;font-size:2.5rem;font-weight:900;color:#ff4d6d;margin-bottom:1.4rem">StreamMyMood</div>'
@@ -95,7 +95,7 @@ section[data-testid="stSidebar"] {{ display: none !important; }}
 #MainMenu, footer, header {{ visibility: hidden; }}
 
 .block-container {{
-  padding-top: 2rem !important;
+  padding-top: 0.2rem !important;
   max-width: 1150px !important;
   margin: 0 auto !important;
   position: relative;
@@ -123,6 +123,14 @@ h1,h2,h3,p,label,div,span {{ color: white !important; }}
   transition: all 0.2s !important;
   box-shadow: 0 4px 18px rgba(180,0,50,0.4) !important;
   direction: rtl !important;
+}}
+/* Like buttons inside movie cards — small */
+[data-testid="column"] [data-testid="column"] .stButton > button {{
+  min-width: 80px !important;
+  padding: 0.35rem 0.8rem !important;
+  font-size: 0.88rem !important;
+  box-shadow: none !important;
+  background: rgba(100,0,25,0.7) !important;
 }}
 /* Like button override — small */
 .stButton.like-small > button {{
@@ -531,11 +539,11 @@ def screen_welcome():
     g=("בוקר טוב" if h<12 else "צהריים טובים" if h<17 else
        "ערב טוב" if h<21 else "לילה טוב")
     st.markdown(f"""
-    <div class="center" style="margin-bottom:0.5rem">
-      <span style="font-size:1.5rem;font-weight:800">{g}!</span>
+    <div class="center" style="margin-bottom:0.3rem;margin-top:0.2rem">
+      <span style="font-size:2.2rem;font-weight:900;letter-spacing:-0.5px">{g}!</span>
     </div>
-    <div class="center" style="margin-bottom:2.5rem">
-      <span class="sub">ברוכים הבאים ל‑Stream My Mood<br>בואו נמצא לכם מה לראות.</span>
+    <div class="center" style="margin-bottom:1.8rem">
+      <span style="font-size:1.25rem;color:rgba(255,255,255,0.82);line-height:1.6">ברוכים הבאים ל‑Stream My Mood<br>בואו נמצא לכם מה לראות.</span>
     </div>""", unsafe_allow_html=True)
     c1,c2,c3=st.columns([1,2,1])
     with c2:
@@ -563,7 +571,7 @@ def screen_quiz():
         f'שאלה {q_idx+1} מתוך {total}</div>',
         unsafe_allow_html=True)
     st.markdown(
-        f'<div class="center big" style="margin-bottom:1.4rem">{q["text"]}</div>',
+        f'<div class="center" style="font-size:1.8rem;font-weight:800;margin-bottom:1.4rem;text-align:center">{q["text"]}</div>',
         unsafe_allow_html=True)
 
     cur=st.session_state.answers.get(q["id"])
@@ -640,16 +648,18 @@ def screen_results(content_df, model_data):
         c=r["row"]; cid=r["id"]; title=c.get("Title","")
         with col:
             st.markdown(card_html(c),unsafe_allow_html=True)
-            # Like button
+            # Like button — narrow
             already_liked = cid in liked
-            btn_label = "❤️" if already_liked else "👍"
-            if st.button(btn_label, key=f"like_{cid}"):
-                if not already_liked:
-                    save_feedback(answers, title)
-                    liked.add(cid)
-                    st.session_state.liked=liked
-                    st.success(f"תודה! {title} נוסף לאימון המודל")
-                    st.rerun()
+            btn_label = "❤️ אהבתי" if already_liked else "👍 מתאים לי"
+            lc1, lc2, lc3 = st.columns([1,2,1])
+            with lc2:
+                if st.button(btn_label, key=f"like_{cid}"):
+                    if not already_liked:
+                        save_feedback(answers, title)
+                        liked.add(cid)
+                        st.session_state.liked=liked
+                        st.success(f"תודה! {title} נוסף לאימון המודל")
+                        st.rerun()
         seen_ids.add(cid)
     st.session_state.seen_ids=seen_ids
 
