@@ -89,7 +89,6 @@ div[data-testid="stRadio"] > div {{
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  width: 100% !important;
 }}
 
 [data-testid="stHeader"] {{ background: transparent !important; }}
@@ -335,7 +334,7 @@ MOOD_MAP = {
     "מרוקן ורוצה להעביר את הזמן בלי לחשוב":            "מרוקן ורק רציתי להעביר את הזמן בלי לחשוב",
 }
 
-# תיקון המפות הסטטיסטיות: התאמה מושלמת בין סדר השאלון לקלטי האקסל
+# תרגום מדויק: מה שהמשתמש בוחר מתורגם לערך הנכון באקסל
 REVIEW_MAP = {
     "לא באמת משנה לי":      "לא אכפת לי מדירוגים",
     "חשובות מאוד!":         "דירוג גבוה",
@@ -402,7 +401,7 @@ def load_data():
         except:
             pass
 
-    # יצירת רשימת הסרטים המותרים לקבוצת ילדים ישירות מתוך הדאטה (מנגנון ההגנה שלך!)
+    # יצירת רשימת הסרטים המותרים לקבוצת ילדים ישירות מתוך הדאטה
     group_valid_titles = set(train[train["Watch_Group"] == "ילדים"]["Content_Title"].tolist())
 
     return content, train, group_valid_titles
@@ -483,7 +482,7 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
     awards_matter  = answers.get("awards_preference","") == "כן, רק זוכי פרסים" 
     rt_min, rt_max = RUNTIME_RANGES.get(time_choice,(0,9999))
 
-    # Dynamic weights
+    # שמירה על הלוגיקה המקורית והמדויקת של המשקלים
     review_val = answers.get("review_importance","")
     if review_val == "חשובות מאוד!":
         w_model, w_rating, w_awards = 0.50, 0.40, 0.10
@@ -538,7 +537,6 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
         cid=str(c["ID"])
         if cid in seen_ids: continue
         
-        # חוק קבוצות קשיח (ההגנה ההרמטית שלך!)
         if watch_group == "ילדים" and c["Title"] not in group_valid_titles: continue
         
         rt=c.get("Runtime_Int") or 0
@@ -562,7 +560,7 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
         extras.sort(key=lambda x: x["score"], reverse=True)
         results += extras
 
-    # Pass 3: גלגל הצלה (ביטול פילטרים קשיחים, שמירה אדוקה על חוק הקבוצה!)
+    # Pass 3: גלגל הצלה
     if len(results) < 4:
         seen3 = {r["id"] for r in results} | seen_ids
         extras2 = []
