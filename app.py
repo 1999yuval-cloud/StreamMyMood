@@ -1,5 +1,5 @@
 # ============================================================
-#  StreamMyMood — app.py  v7
+#  StreamMyMood — app.py  v12 (Israel Timezone Stable)
 # ============================================================
 
 import streamlit as st
@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import joblib, os, time, base64
 from datetime import datetime
-import pytz
+import pytz  # ספריית אזורי זמן
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
@@ -31,8 +31,8 @@ BG_B64   = file_b64("background.png")
 
 def logo_html(width=680):
     if LOGO_B64:
-        return (f'<div style="text-align:center;margin-bottom:0.5rem">'
-                f'<img src="data:image/png;base64,{LOGO_B64}" '
+        return (f'<div style="text-align:center;margin-bottom:0.5rem">'\
+                f'<img src="data:image/png;base64,{LOGO_B64}" '\
                 f'width="{width}" style="max-width:92vw;display:block;margin:0 auto"/></div>')
     return '<div style="text-align:center;font-size:2.5rem;font-weight:900;color:#ff4d6d">StreamMyMood</div>'
 
@@ -117,17 +117,14 @@ section[data-testid="stSidebar"] {{ display: none !important; }}
   margin-bottom: 0 !important;
   padding-top: 1.5rem !important;
 }}
-/* Kill iframe/component default margins */
 .element-container {{
   margin: 0 !important;
   padding: 0 !important;
 }}
-/* Kill the default gap between stMarkdown elements */
 .stMarkdown {{
   margin: 0 !important;
   padding: 0 !important;
 }}
-/* Logo div itself */
 .stMarkdown > div > div > p > img {{
   margin: 0 !important;
   display: block !important;
@@ -155,7 +152,6 @@ h1,h2,h3,p,label,div,span {{ color: white !important; }}
   box-shadow: 0 4px 18px rgba(180,0,50,0.4) !important;
   direction: rtl !important;
 }}
-/* Like button — key trick: target by content width override */
 [data-testid="column"] > div > div > div > div > div > div > .stButton > button {{
   min-width: 10px !important;
   width: auto !important;
@@ -163,7 +159,6 @@ h1,h2,h3,p,label,div,span {{ color: white !important; }}
   font-size: 0.9rem !important;
   box-shadow: none !important;
 }}
-/* Like button override — small */
 .stButton.like-small > button {{
   min-width: 60px !important;
   padding: 0.3rem 0.8rem !important;
@@ -178,7 +173,7 @@ h1,h2,h3,p,label,div,span {{ color: white !important; }}
   transform: translateY(-2px) !important;
 }}
 
-/* ── Radio — hide Streamlit's own circle + label ── */
+/* ── Radio ── */
 div[data-testid="stRadio"] > label {{ display: none !important; }}
 div[data-testid="stRadio"] > div {{
   display: flex !important;
@@ -187,9 +182,7 @@ div[data-testid="stRadio"] > div {{
   gap: 0.55rem !important;
   width: 100% !important;
 }}
-/* Hide the radio circle input */
 div[data-testid="stRadio"] input {{ display: none !important; }}
-/* Style every option label */
 div[data-testid="stRadio"] label {{
   background: rgba(255,255,255,0.07) !important;
   border: 1.5px solid rgba(255,255,255,0.2) !important;
@@ -208,13 +201,8 @@ div[data-testid="stRadio"] label {{
   justify-content: center !important;
   min-height: 54px !important;
 }}
-/* Hide empty first option that Streamlit sometimes adds */
-div[data-testid="stRadio"] > div > label:has(> div:empty) {{
-  display: none !important;
-}}
-div[data-testid="stRadio"] > div > label:first-child:not(:has(p)) {{
-  display: none !important;
-}}
+div[data-testid="stRadio"] > div > label:has(> div:empty) {{ display: none !important; }}
+div[data-testid="stRadio"] > div > label:first-child:not(:has(p)) {{ display: none !important; }}
 div[data-testid="stRadio"] label:hover {{
   background: rgba(180,0,50,0.28) !important;
   border-color: rgba(255,100,130,0.6) !important;
@@ -287,32 +275,6 @@ div[data-testid="stRadio"] label[data-checked="true"] {{
   height: 100px; overflow-y: auto; line-height: 1.55;
 }}
 
-/* ── Like button ── */
-.like-btn {{
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 20px;
-  padding: 0.2rem 0.6rem;
-  font-size: 0.75rem;
-  color: white;
-  cursor: pointer;
-  margin-top: 0.4rem;
-  width: auto;
-  min-width: 80px;
-  transition: all 0.2s;
-  text-align: center;
-  display: inline-block;
-}}
-.like-btn:hover {{
-  background: rgba(180,0,50,0.4);
-  border-color: #ff4d6d;
-}}
-.like-btn.liked {{
-  background: rgba(180,0,50,0.6);
-  border-color: #ff4d6d;
-  color: #ff9ab0;
-}}
-
 /* ── Film animation loading ── */
 .reel-wrap {{ text-align: center; padding: 3rem 0; }}
 .film-icon {{
@@ -344,7 +306,7 @@ REEL_SVG = '<span class="film-icon">🎬</span>'
 # ── CONSTANTS ─────────────────────────────────────────────────
 CONTENT_FILE   = "StreamMyMood_Content_Database.xlsx"
 TRAINING_FILE  = "StreamMyMood_Training_Database.xlsx"
-MODEL_FILE     = "streammymood_model_v7.pkl"
+MODEL_FILE     = "streammymood_model_v2.pkl"
 FEEDBACK_FILE  = "feedback_training.csv"
 
 RUNTIME_RANGES = {
@@ -354,6 +316,34 @@ RUNTIME_RANGES = {
     "מעל שעתיים":  (120, 9999),
 }
 
+# Display options (shown to user) → Training values (fed to model)
+WATCHING_MAP = {
+    "לבד":          "לבד",
+    "בן / בת זוג":  "בדייט",
+    "משפחה":        "משפחה",
+    "חברים":        "חברים",
+    "ילדים":        "ילדים",
+}
+
+MOOD_MAP = {
+    "קליל ומחפש/ת משהו שיעשה לי טוב על הלב":           "קליל וחיפשתי משהו שיעשה לי טוב על הלב",
+    "משועמם ומחפש/ת משהו שיעורר אותי":                  "משועמם וחיפשתי משהו שיעורר אותי",
+    "סקרן ומחפש/ת סיפור להישאב אליו":                   "סקרן וחיפשתי סיפור להישאב אליו",
+    "רגיש ומחפש/ת משהו שייגע בי":                       "רגיש וחיפשתי משהו שייגע בי",
+    "עמוס ומחפש/ת פשוט 'להיעלם' בתוך עולם אחר":        "עמוס וחיפשתי פשוט 'להיעלם' בתוך עולם אחר",
+    "מרוקן ורוצה להעביר את הזמן בלי לחשוב":            "מרוקן ורק רציתי להעביר את הזמן בלי לחשוב",
+}
+
+REVIEW_MAP = {
+    "חשובות מאוד!":         "דירוג גבוה",
+    "לא באמת משנה לי":      "לא אכפת לי מדירוגים",
+}
+
+AWARDS_MAP = {
+    "כן, רק זוכי פרסים":   "כן",
+    "לא קריטי עבורי":       "לא",
+}
+
 QUESTIONS = [
     {"id":"time_available","text":"כמה זמן פנוי יש לך לצפייה?",
      "options":["עד 30 דקות","30–60 דקות","60–120 דקות","מעל שעתיים"]},
@@ -361,17 +351,17 @@ QUESTIONS = [
      "options":["לבד","בן / בת זוג","משפחה","חברים","ילדים"]},
     {"id":"mood","text":"מה המצב רוח שלך כרגע?",
      "options":[
-        "קליל וחיפשתי משהו שיעשה לי טוב על הלב",
-        "משועמם וחיפשתי משהו שיעורר אותי",
-        "סקרן וחיפשתי סיפור להישאב אליו",
-        "רגיש וחיפשתי משהו שייגע בי",
-        "עמוס וחיפשתי פשוט 'להיעלם' בתוך עולם אחר",
+        "קליל ומחפש/ת משהו שיעשה לי טוב על הלב",
+        "משועמם ומחפש/ת משהו שיעורר אותי",
+        "סקרן ומחפש/ת סיפור להישאב אליו",
+        "רגיש ומחפש/ת משהו שייגע בי",
+        "עמוס ומחפש/ת פשוט 'להיעלם' בתוך עולם אחר",
         "מרוקן ורוצה להעביר את הזמן בלי לחשוב",
      ]},
     {"id":"review_importance","text":"עד כמה חשובות לך ביקורות?",
-     "options":["לא באמת משנה לי","חשובות מאוד!"]},
+     "options":["חשובות מאוד!","לא באמת משנה לי"]},
     {"id":"awards_preference","text":"האם חשוב שהתוכן זכה בפרסים?",
-     "options":["לא קריטי עבורי","כן, רק זוכי פרסים"]},
+     "options":["כן, רק זוכי פרסים","לא קריטי עבורי"]},
 ]
 
 LOADING_TEXTS = [
@@ -402,7 +392,7 @@ def load_data():
     }
     train.rename(columns={k:v for k,v in col_map.items() if k in train.columns}, inplace=True)
 
-    # Merge feedback if exists
+    # איחוד פידבק אם קיים
     if os.path.exists(FEEDBACK_FILE):
         try:
             fb = pd.read_csv(FEEDBACK_FILE)
@@ -410,13 +400,27 @@ def load_data():
         except:
             pass
 
-    return content, train
+    # יצירת רשימת הסרטים המותרים לקבוצת ילדים ישירות מתוך הדאטה (מנגנון ההגנה שלך!)
+    group_valid_titles = set(train[train["Watch_Group"] == "ילדים"]["Content_Title"].tolist())
+
+    return content, train, group_valid_titles
 
 # ── MODEL ─────────────────────────────────────────────────────
 @st.cache_resource
 def load_or_train(_train_df, _content_df):
+    needs_retrain = True
     if os.path.exists(MODEL_FILE):
+        try:
+            model_time = os.path.getmtime(MODEL_FILE)
+            train_time = os.path.getmtime(TRAINING_FILE)
+            if train_time <= model_time:
+                needs_retrain = False
+        except:
+            needs_retrain = True
+
+    if not needs_retrain:
         return joblib.load(MODEL_FILE)
+
     return train_model(_train_df, _content_df)
 
 def train_model(train_df, content_df):
@@ -442,16 +446,21 @@ def train_model(train_df, content_df):
     joblib.dump(data, MODEL_FILE)
     return data
 
-# ── FEEDBACK: save like → retrain ─────────────────────────────
+# ── FEEDBACK: save like → retrain (With Israel Timezone!) ───
 def save_feedback(answers, content_title):
+    # כאן נכנס התיקון המדויק והיציב של שעון ישראל!
+    il_tz = pytz.timezone('Asia/Jerusalem')
+    now_il = datetime.now(il_tz)
+    
     row = {
-        "User_Mood":        answers.get("mood",""),
-        "Duration_Limit":   answers.get("time_available",""),
-        "Watch_Group":      answers.get("watching_with",""),
-        "Review_Importance":answers.get("review_importance",""),
-        "Award_Importance": answers.get("awards_preference",""),
-        "Content_Title":    content_title,
-        "timestamp":        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "timestamp":         now_il.strftime("%Y-%m-%d %H:%M:%S"),
+        "chosen_content":    content_title,
+        "content_type":      "",
+        "mood":              MOOD_MAP.get(answers.get("mood",""), answers.get("mood","")),
+        "time_available":    answers.get("time_available",""),
+        "watching_with":     WATCHING_MAP.get(answers.get("watching_with",""), answers.get("watching_with","")),
+        "awards_preference": AWARDS_MAP.get(answers.get("awards_preference",""), "לא"),
+        "rating_influence":  REVIEW_MAP.get(answers.get("review_importance",""), "לא אכפת לי מדירוגים"),
     }
     fb_df = pd.DataFrame([row])
     if os.path.exists(FEEDBACK_FILE):
@@ -459,35 +468,36 @@ def save_feedback(answers, content_title):
     else:
         fb_df.to_csv(FEEDBACK_FILE, index=False)
 
-    # Retrain model with new feedback
     if os.path.exists(MODEL_FILE):
         os.remove(MODEL_FILE)
     st.cache_data.clear()
     st.cache_resource.clear()
 
 # ── ENGINE ────────────────────────────────────────────────────
-def get_recommendations(answers, content_df, model_data, seen_ids=None):
+def get_recommendations(answers, content_df, model_data, group_valid_titles, seen_ids=None):
     seen_ids = seen_ids or set()
     mood           = answers.get("mood","")
     time_choice    = answers.get("time_available","")
-    review_matters = answers.get("review_importance","") == "חשובות מאוד!"
-    awards_matter  = "כן" in answers.get("awards_preference","")
+    watch_group    = WATCHING_MAP.get(answers.get("watching_with",""), answers.get("watching_with",""))
+    awards_matter  = answers.get("awards_preference","") == "כן, רק זוכי פרסים" 
     rt_min, rt_max = RUNTIME_RANGES.get(time_choice,(0,9999))
 
     # Dynamic weights
-    if review_matters:
+    review_val = answers.get("review_importance","")
+    if review_val == "חשובות מאוד!":
         w_model, w_rating, w_awards = 0.50, 0.40, 0.10
     elif awards_matter:
         w_model, w_rating, w_awards = 0.55, 0.25, 0.20
     else:
         w_model, w_rating, w_awards = 0.70, 0.20, 0.10
 
+    # Map display values → training values
     answer_map = {
         "Duration_Limit":    time_choice,
-        "Watch_Group":       answers.get("watching_with",""),
-        "User_Mood":         mood,
-        "Review_Importance": answers.get("review_importance",""),
-        "Award_Importance":  answers.get("awards_preference",""),
+        "Watch_Group":       watch_group,
+        "User_Mood":         MOOD_MAP.get(mood, mood),
+        "Review_Importance": REVIEW_MAP.get(answers.get("review_importance",""), "לא אכפת לי מדירוגים"),
+        "Award_Importance":  AWARDS_MAP.get(answers.get("awards_preference",""), "לא"),
     }
     clf=model_data["model"]; encoders=model_data["encoders"]
     le_target=model_data["le_target"]; features=model_data["features"]
@@ -502,32 +512,70 @@ def get_recommendations(answers, content_df, model_data, seen_ids=None):
     max_rating   = content_df["Rating"].dropna().max() or 10.0
 
     def score(c):
-        ms = model_scores.get(c["Title"],0.0)
+        ms = model_scores.get(c["Title"], 0.0)
         r  = c.get("Rating")
         nr = float(r)/max_rating if (r and not pd.isna(r)) else 0.5
         aw = min(1.0,(c.get("Major_Awards_Won",0) or 0)/10.0)
         return w_model*ms + w_rating*nr + w_awards*aw
 
-    # Pass 1: runtime filter
+    # פילטרים קשיחים על פי דרישת המשתמש
+    awards_required = answers.get("awards_preference","") == "כן, רק זוכי פרסים"
+    reviews_required = answers.get("review_importance","") == "חשובות מאוד!"
+
+    def passes_filters(c):
+        if awards_required:
+            aw = c.get("Major_Awards_Won", 0) or 0
+            if float(aw) <= 0: return False
+        if reviews_required:
+            r = c.get("Rating")
+            if r is None or pd.isna(r) or float(r) < 8.0: return False
+        return True
+
+    # Pass 1: runtime + פילטרים + חוק הבטיחות של הקבוצה
     results = []
     for _,c in content_df.iterrows():
         cid=str(c["ID"])
         if cid in seen_ids: continue
+        
+        # חוק קבוצות קשיח (ההגנה ההרמטית שלך!)
+        if watch_group == "ילדים" and c["Title"] not in group_valid_titles: continue
+        
         rt=c.get("Runtime_Int") or 0
         if not (rt_min<=rt<=rt_max): continue
+        if not passes_filters(c): continue
         results.append({"row":c,"score":score(c),"id":cid})
     results.sort(key=lambda x:x["score"],reverse=True)
 
-    # Pass 2: if <4, relax runtime
-    if len(results)<4:
-        seen2={r["id"] for r in results}|seen_ids
-        extras=[]
-        for _,c in content_df.iterrows():
-            cid=str(c["ID"])
+    # Pass 2: הרחבת אילוצי זמן, שמירה על פילטרים וחוק הקבוצה
+    if len(results) < 4:
+        seen2 = {r["id"] for r in results} | seen_ids
+        extras = []
+        for _, c in content_df.iterrows():
+            cid = str(c["ID"])
             if cid in seen2: continue
+            
+            if watch_group == "ילדים" and c["Title"] not in group_valid_titles: continue
+            
+            if not passes_filters(c): continue
             extras.append({"row":c,"score":score(c),"id":cid})
-        extras.sort(key=lambda x:x["score"],reverse=True)
-        results+=extras
+        extras.sort(key=lambda x: x["score"], reverse=True)
+        results += extras
+
+    # Pass 3: גלגל הצלה (ביטול פילטרים קשיחים, שמירה אדוקה על חוק הקבוצה!)
+    if len(results) < 4:
+        seen3 = {r["id"] for r in results} | seen_ids
+        extras2 = []
+        for _, c in content_df.iterrows():
+            cid = str(c["ID"])
+            if cid in seen3: continue
+            
+            if watch_group == "ילדים" and c["Title"] not in group_valid_titles: continue
+            
+            extras2.append({"row":c,"score":score(c),"id":cid})
+        extras2.sort(key=lambda x: x["score"], reverse=True)
+        results += extras2
+        if extras2:
+            st.caption("לא מצאנו מספיק תכנים עם כל הדרישות שלך — הוספנו תכנים קרובים.")
 
     return results
 
@@ -574,7 +622,7 @@ def screen_welcome():
       <span style="font-size:2.2rem;font-weight:900;letter-spacing:-0.5px">{g}!</span>
     </div>
     <div class="center" style="margin-bottom:1.8rem">
-      <span style="font-size:1.25rem;color:rgba(255,255,255,0.82);line-height:1.6">ברוכים הבאים ל‑Stream My Mood<br>בואו נמצא לכם מה לראות.</span>
+      <span style="font-size:1.25rem;color:rgba(255,255,255,0.82);line-height:1.6">ברוכים הבאים ל‑Stream My Mood<br>בואומצא לכם מה לראות.</span>
     </div>""", unsafe_allow_html=True)
     c1,c2,c3=st.columns([1,2,1])
     with c2:
@@ -608,7 +656,6 @@ def screen_quiz():
     cur=st.session_state.answers.get(q["id"])
     idx=q["options"].index(cur) if cur in q["options"] else 0
 
-    # Use selectbox instead of radio — no empty first option issue
     sel=st.radio(
         label="בחרו תשובה",
         options=q["options"],
@@ -644,7 +691,7 @@ def screen_loading():
     st.rerun()
 
 
-def screen_results(content_df, model_data):
+def screen_results(content_df, model_data, group_valid_titles):
     st.markdown(logo_html(680), unsafe_allow_html=True)
     answers  =st.session_state.answers
     seen_ids =st.session_state.get("seen_ids",set())
@@ -652,7 +699,7 @@ def screen_results(content_df, model_data):
 
     if not st.session_state.get("ranked"):
         st.session_state.ranked=get_recommendations(
-            answers,content_df,model_data,set())
+            answers,content_df,model_data,group_valid_titles,set())
 
     ranked   =st.session_state.ranked
     remaining=[r for r in ranked if r["id"] not in seen_ids]
@@ -679,12 +726,10 @@ def screen_results(content_df, model_data):
         c=r["row"]; cid=r["id"]; title=c.get("Title","")
         with col:
             st.markdown(card_html(c),unsafe_allow_html=True)
-            # Like button — use markdown + form trick for narrow button
             already_liked = cid in liked
             if already_liked:
                 st.markdown('<div style="text-align:center;color:#ff9ab0;font-size:1rem;margin-top:0.3rem">❤️ נוסף לאימון!</div>', unsafe_allow_html=True)
             else:
-                # Narrow column = narrow button
                 _l, _m, _r = st.columns([2,3,2])
                 with _m:
                     if st.button("👍 מתאים לי", key=f"like_{cid}"):
@@ -717,13 +762,20 @@ def screen_results(content_df, model_data):
 def main():
     if "screen" not in st.session_state:
         st.session_state.screen="welcome"
-    content_df,train_df=load_data()
-    model_data=load_or_train(train_df,content_df)
+
+    # קריאה נכונה ל-load_data שמחזירה 3 ערכים (כולל חסימת הילדים!) ומניעה את ה-unpacking error
+    content_df, train_df, group_valid_titles = load_data()
+
+    if "model_data" not in st.session_state:
+        with st.spinner("מכין את המערכת..."):
+            st.session_state.model_data = load_or_train(train_df,content_df)
+    model_data = st.session_state.model_data
+
     s=st.session_state.screen
     if   s=="welcome": screen_welcome()
     elif s=="quiz":    screen_quiz()
     elif s=="loading": screen_loading()
-    elif s=="results": screen_results(content_df,model_data)
+    elif s=="results": screen_results(content_df,model_data,group_valid_titles)
 
 if __name__=="__main__":
     main()
