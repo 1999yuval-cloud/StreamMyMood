@@ -343,7 +343,7 @@ REEL_SVG = '<span class="film-icon">🎬</span>'
 # ── CONSTANTS ─────────────────────────────────────────────────
 CONTENT_FILE   = "StreamMyMood_Content_Database.xlsx"
 TRAINING_FILE  = "StreamMyMood_Training_Database.xlsx"
-MODEL_FILE     = "streammymood_model_v4.pkl"
+MODEL_FILE     = "streammymood_model_v5.pkl"
 FEEDBACK_FILE  = "feedback_training.csv"
 
 RUNTIME_RANGES = {
