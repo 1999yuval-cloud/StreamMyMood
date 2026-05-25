@@ -89,6 +89,7 @@ div[data-testid="stRadio"] > div {{
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
+  width: 100% !important;
 }}
 
 [data-testid="stHeader"] {{ background: transparent !important; }}
@@ -334,14 +335,15 @@ MOOD_MAP = {
     "מרוקן ורוצה להעביר את הזמן בלי לחשוב":            "מרוקן ורק רציתי להעביר את הזמן בלי לחשוב",
 }
 
+# תיקון המפות הסטטיסטיות: התאמה מושלמת בין סדר השאלון לקלטי האקסל
 REVIEW_MAP = {
-    "חשובות מאוד!":         "דירוג גבוה",
     "לא באמת משנה לי":      "לא אכפת לי מדירוגים",
+    "חשובות מאוד!":         "דירוג גבוה",
 }
 
 AWARDS_MAP = {
-    "כן, רק זוכי פרסים":   "כן",
     "לא קריטי עבורי":       "לא",
+    "כן, רק זוכי פרסים":   "כן",
 }
 
 QUESTIONS = [
@@ -448,7 +450,6 @@ def train_model(train_df, content_df):
 
 # ── FEEDBACK: save like → retrain (With Israel Timezone!) ───
 def save_feedback(answers, content_title):
-    # כאן נכנס התיקון המדויק והיציב של שעון ישראל!
     il_tz = pytz.timezone('Asia/Jerusalem')
     now_il = datetime.now(il_tz)
     
@@ -763,7 +764,6 @@ def main():
     if "screen" not in st.session_state:
         st.session_state.screen="welcome"
 
-    # קריאה נכונה ל-load_data שמחזירה 3 ערכים (כולל חסימת הילדים!) ומניעה את ה-unpacking error
     content_df, train_df, group_valid_titles = load_data()
 
     if "model_data" not in st.session_state:
