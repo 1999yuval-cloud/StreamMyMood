@@ -622,7 +622,7 @@ def screen_welcome():
       <span style="font-size:2.2rem;font-weight:900;letter-spacing:-0.5px">{g}!</span>
     </div>
     <div class="center" style="margin-bottom:1.8rem">
-      <span style="font-size:1.25rem;color:rgba(255,255,255,0.82);line-height:1.6">ברוכים הבאים ל‑Stream My Mood<br>בואומצא לכם מה לראות.</span>
+      <span style="font-size:1.25rem;color:rgba(255,255,255,0.82);line-height:1.6">ברוכים הבאים ל‑Stream My Mood<br>בואו נמצא לכם מה לראות.</span>
     </div>""", unsafe_allow_html=True)
     c1,c2,c3=st.columns([1,2,1])
     with c2:
