@@ -1,5 +1,5 @@
 # ============================================================
-#  StreamMyMood — app.py  v12 + Content_ID + Fixed Scroll
+#  StreamMyMood — app.py  v12 + Content_ID + TC fixes (Stable Final)
 # ============================================================
 
 import streamlit as st
@@ -208,8 +208,6 @@ def save_feedback(answers, content_title):
     if os.path.exists(FEEDBACK_FILE): fb_df.to_csv(FEEDBACK_FILE, mode="a", header=False, index=False)
     else: fb_df.to_csv(FEEDBACK_FILE, index=False)
     if os.path.exists(MODEL_FILE): os.remove(MODEL_FILE)
-    st.cache_data.clear()
-    st.cache_resource.clear()
 
 def get_recommendations(answers, content_df, model_data, group_valid_titles, seen_ids=None):
     seen_ids = seen_ids or set()
@@ -278,7 +276,7 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
     relaxed_time = False
     if len(results) < 4:
         seen2={r["id"] for r in results}|seen_ids
-        extras=[]
+        extras = []
         for _,c in content_df.iterrows():
             cid=str(c["ID"])
             if cid in seen2: continue
@@ -293,7 +291,7 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
     relaxed_filters = False
     if len(results) < 4:
         seen3={r["id"] for r in results}|seen_ids
-        extras2=[]
+        extras2 = []
         for _,c in content_df.iterrows():
             cid=str(c["ID"])
             if cid in seen3: continue
@@ -403,20 +401,18 @@ def screen_results(content_df, model_data, group_valid_titles):
         with col:
             st.markdown(card_html(c), unsafe_allow_html=True)
             
-            # בדיקה האם לחצו לייק. אם כן - מציג כיתוב. אם לא - מציג כפתור יציב בתוך Form
+            # בדיקה חלקה - מציג את הכיתוב הורוד המקורי אם לחצו
             if cid in st.session_state.liked:
                 st.markdown('<div style="text-align:center;color:#ff9ab0;font-size:1rem;margin-top:0.3rem">❤️ נוסף לאימון!</div>', unsafe_allow_html=True)
             else:
-                # הוספת st.form כדי למנוע נדידת פוקוס של הדף בעת לחיצה
-                with st.form(key=f"form_{cid}", clear_on_submit=False):
-                    _l,_m,_r=st.columns([1,5,1])
-                    with _m:
-                        submit = st.form_submit_button("👍 מתאים לי")
-                        if submit:
-                            save_feedback(answers, title)
-                            st.session_state.liked.add(cid)  # שמירה בסטייט המאובטח
-                            st.session_state.seen_ids = seen_ids
-                            st.rerun()
+                _l,_m,_r=st.columns([2,3,2])
+                with _m:
+                    # החזרת הכפתור המקורי, המעוצב והמהמם שלך!
+                    if st.button("👍 מתאים לי", key=f"like_{cid}"):
+                        save_feedback(answers, title)
+                        st.session_state.liked.add(cid)  # המערכת זוכרת את הלחיצה
+                        st.session_state.seen_ids = seen_ids
+                        st.rerun()
         seen_ids.add(cid)
     st.session_state.seen_ids=seen_ids
 
@@ -436,11 +432,14 @@ def screen_results(content_df, model_data, group_valid_titles):
 def main():
     if "liked" not in st.session_state: st.session_state.liked = set()
     if "screen" not in st.session_state: st.session_state.screen="welcome"
+    
     content_df, train_df, group_valid_titles = load_data()
+    
     if "model_data" not in st.session_state:
         with st.spinner("מכין את המערכת..."):
             st.session_state.model_data = load_or_train(train_df, content_df)
     model_data = st.session_state.model_data
+    
     s=st.session_state.screen
     if   s=="welcome": screen_welcome()
     elif s=="quiz":    screen_quiz()
