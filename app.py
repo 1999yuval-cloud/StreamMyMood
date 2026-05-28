@@ -102,7 +102,7 @@ MOOD_MAP = {
     "סקרן ומחפש/ת סיפור להישאב אליו": "סקרן וחיפשתי סיפור להישאב אליו",
     "רגיש ומחפש/ת משהו שייגע בי": "רגיש וחיפשתי משהו שייגע בי",
     "עמוס ומחפש/ת פשוט 'להיעלם' בתוך עולם אחר": "עמוס וחיפשתי פשוט 'להיעלם' בתוך עולם אחר",
-    "מרוקן ורוצה להעביר את הזמן בלי לחשוב": "מרוקן ורק רציתי להעביר את הזמן בלי לחשוב",
+    "מרוקן ורוצה להעביר את הזמן בלי לחשוב": "mרוקן ורק רציתי להעביר את הזמן בלי לחשוב",
 }
 
 REVIEW_MAP = {"לא באמת משנה לי":"לא אכפת לי מדירוגים","חשובות מאוד!":"דירוג גבוה"}
@@ -205,8 +205,6 @@ def save_feedback(answers, content_title):
     fb_df = pd.DataFrame([row])
     if os.path.exists(FEEDBACK_FILE): fb_df.to_csv(FEEDBACK_FILE, mode="a", header=False, index=False)
     else: fb_df.to_csv(FEEDBACK_FILE, index=False)
-    
-    # הסרת הפקודות שמחקו את ה-Cache וגרמו לקריסת וזריקת המסך!
     if os.path.exists(MODEL_FILE): os.remove(MODEL_FILE)
 
 def get_recommendations(answers, content_df, model_data, group_valid_titles, seen_ids=None):
@@ -260,6 +258,11 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
 
     def in_group(c): return c["Title"] in valid_for_group
 
+    # הגדרת משתני הדגלים מראש למניעת קריסות (תיקון באג!)
+    relaxed_time = False
+    relaxed_filters = False
+
+    # Pass 1: כל הפילטרים מחמירים
     results = []
     for _,c in content_df.iterrows():
         cid=str(c["ID"])
@@ -271,6 +274,7 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
         results.append({"row":c,"score":score(c),"id":cid})
     results.sort(key=lambda x:x["score"],reverse=True)
 
+    # Pass 2: הרחבת זמן, שמירה על שאר הפילטרים
     if len(results) < 4:
         seen2={r["id"] for r in results}|seen_ids
         extras = []
@@ -284,6 +288,7 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
         if extras: relaxed_time = True
         results+=extras
 
+    # Pass 3: הרחבת זמן + שחרור פילטרי דירוג/פרסים
     if len(results) < 4:
         seen3={r["id"] for r in results}|seen_ids
         extras2 = []
@@ -296,6 +301,7 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
         if extras2: relaxed_filters = True
         results+=extras2
 
+    # הודעות מתאימות
     if relaxed_filters:
         st.caption("לא מצאנו תכנים שעונים על כל הדרישות שלך — הנה התכנים הקרובים ביותר.")
     elif relaxed_time and time_choice == "מעל שעתיים":
@@ -395,16 +401,14 @@ def screen_results(content_df, model_data, group_valid_titles):
         with col:
             st.markdown(card_html(c), unsafe_allow_html=True)
             
-            # בדיקה האם לחצו לייק. מציג את הכיתוב הורוד המקורי והמעוצב שלך
             if cid in st.session_state.liked:
                 st.markdown('<div style="text-align:center;color:#ff9ab0;font-size:1rem;margin-top:0.3rem">❤️ נוסף לאימון!</div>', unsafe_allow_html=True)
             else:
                 _l,_m,_r=st.columns([2,3,2])
                 with _m:
-                    # כפתור הלייק המקורי והסופר מעוצב שלך בדיוק כמו שרצית!
                     if st.button("👍 מתאים לי", key=f"like_{cid}"):
                         save_feedback(answers, title)
-                        st.session_state.liked.add(cid)  # נשמר בסטייט קבוע ויציב שלא נמחק
+                        st.session_state.liked.add(cid)
                         st.session_state.seen_ids = seen_ids
                         st.rerun()
         seen_ids.add(cid)
