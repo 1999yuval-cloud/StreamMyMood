@@ -1,5 +1,5 @@
 # ============================================================
-#  StreamMyMood — app.py  v12 + Content_ID + TC fixes (Stable Final)
+#  StreamMyMood — app.py  v12 + Content_ID + Fixed Batch Lock
 # ============================================================
 
 import streamlit as st
@@ -102,7 +102,7 @@ MOOD_MAP = {
     "סקרן ומחפש/ת סיפור להישאב אליו": "סקרן וחיפשתי סיפור להישאב אליו",
     "רגיש ומחפש/ת משהו שייגע בי": "רגיש וחיפשתי משהו שייגע בי",
     "עמוס ומחפש/ת פשוט 'להיעלם' בתוך עולם אחר": "עמוס וחיפשתי פשוט 'להיעלם' בתוך עולם אחר",
-    "מרוקן ורוצה להעביר את הזמן בלי לחשוב": "mרוקן ורק רציתי להעביר את הזמן בלי לחשוב",
+    "מרוקן ורוצה להעביר את הזמן בלי לחשוב": "מרוקן ורק רציתי להעביר את הזמן בלי לחשוב",
 }
 
 REVIEW_MAP = {"לא באמת משנה לי":"לא אכפת לי מדירוגים","חשובות מאוד!":"דירוג גבוה"}
@@ -258,11 +258,9 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
 
     def in_group(c): return c["Title"] in valid_for_group
 
-    # הגדרת משתני הדגלים מראש למניעת קריסות (תיקון באג!)
     relaxed_time = False
     relaxed_filters = False
 
-    # Pass 1: כל הפילטרים מחמירים
     results = []
     for _,c in content_df.iterrows():
         cid=str(c["ID"])
@@ -274,7 +272,6 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
         results.append({"row":c,"score":score(c),"id":cid})
     results.sort(key=lambda x:x["score"],reverse=True)
 
-    # Pass 2: הרחבת זמן, שמירה על שאר הפילטרים
     if len(results) < 4:
         seen2={r["id"] for r in results}|seen_ids
         extras = []
@@ -288,7 +285,6 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
         if extras: relaxed_time = True
         results+=extras
 
-    # Pass 3: הרחבת זמן + שחרור פילטרי דירוג/פרסים
     if len(results) < 4:
         seen3={r["id"] for r in results}|seen_ids
         extras2 = []
@@ -301,7 +297,6 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
         if extras2: relaxed_filters = True
         results+=extras2
 
-    # הודעות מתאימות
     if relaxed_filters:
         st.caption("לא מצאנו תכנים שעונים על כל הדרישות שלך — הנה התכנים הקרובים ביותר.")
     elif relaxed_time and time_choice == "מעל שעתיים":
@@ -339,7 +334,7 @@ def screen_welcome():
     c1,c2,c3=st.columns([1,2,1])
     with c2:
         if st.button("לחצו כאן כדי להתחיל!"):
-            st.session_state.update({"screen":"quiz","q_index":0,"answers":{},"seen_ids":set(),"ranked":None,"liked":set()})
+            st.session_state.update({"screen":"quiz","q_index":0,"answers":{},"seen_ids":set(),"ranked":None,"liked":set(),"current_batch":None})
             st.rerun()
 
 def screen_quiz():
@@ -377,19 +372,30 @@ def screen_results(content_df, model_data, group_valid_titles):
     answers=st.session_state.answers
     seen_ids=st.session_state.get("seen_ids",set())
 
+    # יצירת דירוג ההמלצות הכללי אם הוא עוד לא קיים
     if not st.session_state.get("ranked"):
         st.session_state.ranked=get_recommendations(answers,content_df,model_data,group_valid_titles,set())
 
     ranked=st.session_state.ranked
-    remaining=[r for r in ranked if r["id"] not in seen_ids]
-    batch=remaining[:4]
+
+    # ── הפיצוח: נעילת ה-Batch הנוכחי בזיכרון ──
+    if st.session_state.get("current_batch") is None:
+        remaining=[r for r in ranked if r["id"] not in seen_ids]
+        batch=remaining[:4]
+        st.session_state.current_batch = batch
+        # הוספה אוטומטית ל-seen_ids כדי שהשלב הבא ידע להחליף אותם
+        for r in batch:
+            seen_ids.add(r["id"])
+        st.session_state.seen_ids = seen_ids
+    else:
+        batch = st.session_state.current_batch
 
     if not batch:
         st.markdown('<div class="center big" style="margin:2rem 0">לא קיימות המלצות נוספות בהתאם להגדרות שלך.</div>', unsafe_allow_html=True)
         c1,c2,c3=st.columns([1,2,1])
         with c2:
             if st.button("התחל מחדש"):
-                for k in ["screen","q_index","answers","seen_ids","ranked","liked"]: st.session_state.pop(k,None)
+                for k in ["screen","q_index","answers","seen_ids","ranked","liked","current_batch"]: st.session_state.pop(k,None)
                 st.rerun()
         return
 
@@ -408,23 +414,23 @@ def screen_results(content_df, model_data, group_valid_titles):
                 with _m:
                     if st.button("👍 מתאים לי", key=f"like_{cid}"):
                         save_feedback(answers, title)
-                        st.session_state.liked.add(cid)
-                        st.session_state.seen_ids = seen_ids
+                        st.session_state.liked.add(cid)  # סימון הלייק יישאר קבוע על המסך
                         st.rerun()
-        seen_ids.add(cid)
-    st.session_state.seen_ids=seen_ids
 
     st.markdown("<br><br>", unsafe_allow_html=True)
     next_avail=[r for r in ranked if r["id"] not in seen_ids]
     c1,c2,c3=st.columns([1,2,1])
     with c2:
         if next_avail:
-            if st.button("לא אהבתי את ההמלצות האלה, אשמח להמלצות נוספות"): st.rerun()
+            # הכפתור הזה הוא היחיד שמותר לו להחליף את הסרטים שעל המסך!
+            if st.button("לא אהבתי את ההמלצות האלה, אשמח להמלצות נוספות"): 
+                st.session_state.current_batch = None  # מנקה את הנעילה כדי להגריל את 4 הבאים
+                st.rerun()
         else:
             st.markdown('<div class="center sub">לא קיימות המלצות נוספות בהתאם להגדרות שלך.</div>', unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("התחל מחדש"):
-            for k in ["screen","q_index","answers","seen_ids","ranked","liked"]: st.session_state.pop(k,None)
+            for k in ["screen","q_index","answers","seen_ids","ranked","liked","current_batch"]: st.session_state.pop(k,None)
             st.rerun()
 
 def main():
