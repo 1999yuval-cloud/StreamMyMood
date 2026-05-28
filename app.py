@@ -1,5 +1,5 @@
 # ============================================================
-#  StreamMyMood — app.py  v12 + Content_ID + TC fixes (Final)
+#  StreamMyMood — app.py  v12 + Content_ID + TC fixes + View Fix
 # ============================================================
 
 import streamlit as st
@@ -303,7 +303,7 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
         if extras2: relaxed_filters = True
         results+=extras2
 
-    # הודעות מתאימות למשתמש
+    # הודעות מתאימות
     if relaxed_filters:
         st.caption("לא מצאנו תכנים שעונים על כל הדרישות שלך — הנה התכנים הקרובים ביותר.")
     elif relaxed_time and time_choice == "מעל שעתיים":
@@ -403,7 +403,7 @@ def screen_results(content_df, model_data, group_valid_titles):
         with col:
             st.markdown(card_html(c), unsafe_allow_html=True)
             
-            # הצגת חיווי ורוד אם הסרט כבר נשמר בלייקים ב-session הנוכחי
+            # פתרון קבוע: שימוש ב-Session State המאובטח לבדיקת הלייקים
             if cid in st.session_state.liked:
                 st.markdown('<div style="text-align:center;color:#ff9ab0;font-size:1rem;margin-top:0.3rem">❤️ נוסף לאימון!</div>', unsafe_allow_html=True)
             else:
@@ -411,7 +411,7 @@ def screen_results(content_df, model_data, group_valid_titles):
                 with _m:
                     if st.button("👍 מתאים לי", key=f"like_{cid}"):
                         save_feedback(answers, title)
-                        st.session_state.liked.add(cid)  # שמירה יציבה בסטייט שלא תתאפס
+                        st.session_state.liked.add(cid)  # נשמר בסטייט קבוע ולא נמחק בניקוי Cache
                         st.session_state.seen_ids = seen_ids
                         st.rerun()
         seen_ids.add(cid)
@@ -431,7 +431,8 @@ def screen_results(content_df, model_data, group_valid_titles):
             st.rerun()
 
 def main():
-    if "liked" not in st.session_state: st.session_state.liked = set()  # אתחול רשימת הלייקים
+    # אתחול סטטי קבוע של רשימת הלייקים שלא תושפע מניקוי ה-Cache
+    if "liked" not in st.session_state: st.session_state.liked = set()
     if "screen" not in st.session_state: st.session_state.screen="welcome"
     
     content_df, train_df, group_valid_titles = load_data()
