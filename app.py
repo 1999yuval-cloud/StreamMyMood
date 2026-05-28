@@ -57,7 +57,7 @@ h1,h2,h3,p,label,div,span {{ color: white !important; }}
 .stButton > button {{ background: linear-gradient(135deg, #7a0025, #b30030) !important; color: white !important; border: 1.5px solid rgba(255,255,255,0.25) !important; border-radius: 30px !important; padding: 0.75rem 2.8rem !important; font-size: 1.05rem !important; font-weight: 700 !important; font-family: 'Assistant', sans-serif !important; min-width: 260px !important; transition: all 0.2s !important; box-shadow: 0 4px 18px rgba(180,0,50,0.4) !important; direction: rtl !important; }}
 .stButton > button:hover {{ background: linear-gradient(135deg, #b30030, #d4003a) !important; transform: translateY(-2px) !important; }}
 div[data-testid="stRadio"] > label {{ display: none !important; }}
-div[data-testid="stRadio"] > div {{ display: flex !important; flex-direction: column !important; align-items: center !important; gap: 0.55rem !important; width: 100% !important; }}
+div[data-testid="stRadio"] > div {{ display: flex !important; flex-direction: column !important; gap: 0.55rem !important; width: 100% !important; }}
 div[data-testid="stRadio"] input {{ display: none !important; }}
 div[data-testid="stRadio"] label {{ background: rgba(255,255,255,0.07) !important; border: 1.5px solid rgba(255,255,255,0.2) !important; border-radius: 14px !important; padding: 0.85rem 2rem !important; width: 520px !important; max-width: 88vw !important; cursor: pointer !important; transition: all 0.2s !important; text-align: center !important; font-size: 1.05rem !important; font-weight: 600 !important; direction: rtl !important; display: flex !important; align-items: center !important; justify-content: center !important; min-height: 54px !important; }}
 div[data-testid="stRadio"] label:hover {{ background: rgba(180,0,50,0.28) !important; border-color: rgba(255,100,130,0.6) !important; }}
@@ -89,7 +89,6 @@ TRAINING_FILE = "StreamMyMood_Training_Database.xlsx"
 MODEL_FILE    = "streammymood_model_v10.pkl"
 FEEDBACK_FILE = "feedback_training.csv"
 
-# TC-05 fix: מעל שעתיים = 120 דקות ומעלה
 RUNTIME_RANGES = {
     "עד 30 דקות": (0,30), "30–60 דקות": (30,60),
     "60–120 דקות": (60,120), "מעל שעתיים": (120,9999),
@@ -145,7 +144,6 @@ def load_data():
             train = pd.concat([train, fb], ignore_index=True)
         except: pass
 
-    # חיבור דרך Content_ID לדיוק מירבי
     if "Content_ID" in train.columns:
         train["Content_ID"] = train["Content_ID"].astype(str)
         id_to_title = dict(zip(content["ID"], content["Title"]))
@@ -207,6 +205,8 @@ def save_feedback(answers, content_title):
     fb_df = pd.DataFrame([row])
     if os.path.exists(FEEDBACK_FILE): fb_df.to_csv(FEEDBACK_FILE, mode="a", header=False, index=False)
     else: fb_df.to_csv(FEEDBACK_FILE, index=False)
+    
+    # הסרת הפקודות שמחקו את ה-Cache וגרמו לקריסת וזריקת המסך!
     if os.path.exists(MODEL_FILE): os.remove(MODEL_FILE)
 
 def get_recommendations(answers, content_df, model_data, group_valid_titles, seen_ids=None):
@@ -260,7 +260,6 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
 
     def in_group(c): return c["Title"] in valid_for_group
 
-    # Pass 1: כל הפילטרים מחמירים
     results = []
     for _,c in content_df.iterrows():
         cid=str(c["ID"])
@@ -272,8 +271,6 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
         results.append({"row":c,"score":score(c),"id":cid})
     results.sort(key=lambda x:x["score"],reverse=True)
 
-    # Pass 2: הרחבת זמן, שמירה על שאר הפילטרים
-    relaxed_time = False
     if len(results) < 4:
         seen2={r["id"] for r in results}|seen_ids
         extras = []
@@ -287,8 +284,6 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
         if extras: relaxed_time = True
         results+=extras
 
-    # Pass 3: הרחבת זמן + שחרור פילטרי דירוג/פרסים
-    relaxed_filters = False
     if len(results) < 4:
         seen3={r["id"] for r in results}|seen_ids
         extras2 = []
@@ -301,7 +296,6 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
         if extras2: relaxed_filters = True
         results+=extras2
 
-    # הודעות מתאימות
     if relaxed_filters:
         st.caption("לא מצאנו תכנים שעונים על כל הדרישות שלך — הנה התכנים הקרובים ביותר.")
     elif relaxed_time and time_choice == "מעל שעתיים":
@@ -401,16 +395,16 @@ def screen_results(content_df, model_data, group_valid_titles):
         with col:
             st.markdown(card_html(c), unsafe_allow_html=True)
             
-            # בדיקה חלקה - מציג את הכיתוב הורוד המקורי אם לחצו
+            # בדיקה האם לחצו לייק. מציג את הכיתוב הורוד המקורי והמעוצב שלך
             if cid in st.session_state.liked:
                 st.markdown('<div style="text-align:center;color:#ff9ab0;font-size:1rem;margin-top:0.3rem">❤️ נוסף לאימון!</div>', unsafe_allow_html=True)
             else:
                 _l,_m,_r=st.columns([2,3,2])
                 with _m:
-                    # החזרת הכפתור המקורי, המעוצב והמהמם שלך!
+                    # כפתור הלייק המקורי והסופר מעוצב שלך בדיוק כמו שרצית!
                     if st.button("👍 מתאים לי", key=f"like_{cid}"):
                         save_feedback(answers, title)
-                        st.session_state.liked.add(cid)  # המערכת זוכרת את הלחיצה
+                        st.session_state.liked.add(cid)  # נשמר בסטייט קבוע ויציב שלא נמחק
                         st.session_state.seen_ids = seen_ids
                         st.rerun()
         seen_ids.add(cid)
