@@ -1,5 +1,5 @@
 # ============================================================
-#  StreamMyMood — app.py  v12 + Content_ID + TC fixes
+#  StreamMyMood — app.py  v12 + Content_ID + TC fixes (Final)
 # ============================================================
 
 import streamlit as st
@@ -303,7 +303,7 @@ def get_recommendations(answers, content_df, model_data, group_valid_titles, see
         if extras2: relaxed_filters = True
         results+=extras2
 
-    # הודעות מתאימות
+    # הודעות מתאימות למשתמש
     if relaxed_filters:
         st.caption("לא מצאנו תכנים שעונים על כל הדרישות שלך — הנה התכנים הקרובים ביותר.")
     elif relaxed_time and time_choice == "מעל שעתיים":
@@ -378,7 +378,6 @@ def screen_results(content_df, model_data, group_valid_titles):
     st.markdown(logo_html(680), unsafe_allow_html=True)
     answers=st.session_state.answers
     seen_ids=st.session_state.get("seen_ids",set())
-    liked=st.session_state.get("liked",set())
 
     if not st.session_state.get("ranked"):
         st.session_state.ranked=get_recommendations(answers,content_df,model_data,group_valid_titles,set())
@@ -403,18 +402,17 @@ def screen_results(content_df, model_data, group_valid_titles):
         c=r["row"]; cid=r["id"]; title=c.get("Title","")
         with col:
             st.markdown(card_html(c), unsafe_allow_html=True)
-            already_liked=cid in liked
-            if already_liked:
+            
+            # הצגת חיווי ורוד אם הסרט כבר נשמר בלייקים ב-session הנוכחי
+            if cid in st.session_state.liked:
                 st.markdown('<div style="text-align:center;color:#ff9ab0;font-size:1rem;margin-top:0.3rem">❤️ נוסף לאימון!</div>', unsafe_allow_html=True)
             else:
                 _l,_m,_r=st.columns([2,3,2])
                 with _m:
-                    # TC-08 fix: שמירת seen_ids לפני rerun כדי להישאר באותו מסך
                     if st.button("👍 מתאים לי", key=f"like_{cid}"):
                         save_feedback(answers, title)
-                        liked.add(cid)
-                        st.session_state.liked=liked
-                        st.session_state.seen_ids=seen_ids
+                        st.session_state.liked.add(cid)  # שמירה יציבה בסטייט שלא תתאפס
+                        st.session_state.seen_ids = seen_ids
                         st.rerun()
         seen_ids.add(cid)
     st.session_state.seen_ids=seen_ids
@@ -433,12 +431,16 @@ def screen_results(content_df, model_data, group_valid_titles):
             st.rerun()
 
 def main():
+    if "liked" not in st.session_state: st.session_state.liked = set()  # אתחול רשימת הלייקים
     if "screen" not in st.session_state: st.session_state.screen="welcome"
+    
     content_df, train_df, group_valid_titles = load_data()
+    
     if "model_data" not in st.session_state:
         with st.spinner("מכין את המערכת..."):
             st.session_state.model_data = load_or_train(train_df, content_df)
     model_data = st.session_state.model_data
+    
     s=st.session_state.screen
     if   s=="welcome": screen_welcome()
     elif s=="quiz":    screen_quiz()
