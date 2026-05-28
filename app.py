@@ -1,5 +1,5 @@
 # ============================================================
-#  StreamMyMood — app.py  v12 + Content_ID + TC fixes + View Fix
+#  StreamMyMood — app.py  v12 + Content_ID + Fixed Scroll
 # ============================================================
 
 import streamlit as st
@@ -403,17 +403,20 @@ def screen_results(content_df, model_data, group_valid_titles):
         with col:
             st.markdown(card_html(c), unsafe_allow_html=True)
             
-            # פתרון קבוע: שימוש ב-Session State המאובטח לבדיקת הלייקים
+            # בדיקה האם לחצו לייק. אם כן - מציג כיתוב. אם לא - מציג כפתור יציב בתוך Form
             if cid in st.session_state.liked:
                 st.markdown('<div style="text-align:center;color:#ff9ab0;font-size:1rem;margin-top:0.3rem">❤️ נוסף לאימון!</div>', unsafe_allow_html=True)
             else:
-                _l,_m,_r=st.columns([2,3,2])
-                with _m:
-                    if st.button("👍 מתאים לי", key=f"like_{cid}"):
-                        save_feedback(answers, title)
-                        st.session_state.liked.add(cid)  # נשמר בסטייט קבוע ולא נמחק בניקוי Cache
-                        st.session_state.seen_ids = seen_ids
-                        st.rerun()
+                # הוספת st.form כדי למנוע נדידת פוקוס של הדף בעת לחיצה
+                with st.form(key=f"form_{cid}", clear_on_submit=False):
+                    _l,_m,_r=st.columns([1,5,1])
+                    with _m:
+                        submit = st.form_submit_button("👍 מתאים לי")
+                        if submit:
+                            save_feedback(answers, title)
+                            st.session_state.liked.add(cid)  # שמירה בסטייט המאובטח
+                            st.session_state.seen_ids = seen_ids
+                            st.rerun()
         seen_ids.add(cid)
     st.session_state.seen_ids=seen_ids
 
@@ -431,17 +434,13 @@ def screen_results(content_df, model_data, group_valid_titles):
             st.rerun()
 
 def main():
-    # אתחול סטטי קבוע של רשימת הלייקים שלא תושפע מניקוי ה-Cache
     if "liked" not in st.session_state: st.session_state.liked = set()
     if "screen" not in st.session_state: st.session_state.screen="welcome"
-    
     content_df, train_df, group_valid_titles = load_data()
-    
     if "model_data" not in st.session_state:
         with st.spinner("מכין את המערכת..."):
             st.session_state.model_data = load_or_train(train_df, content_df)
     model_data = st.session_state.model_data
-    
     s=st.session_state.screen
     if   s=="welcome": screen_welcome()
     elif s=="quiz":    screen_quiz()
